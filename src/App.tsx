@@ -1,4 +1,4 @@
-import React, {xuseEffect} from 'react';
+import React, {useEffect} from 'react';
 import './App.css';
 import {Button, Stack, styled} from '@mui/material';
 import {getStyledTextField} from "./components/StyledTextField";
