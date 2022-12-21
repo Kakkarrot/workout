@@ -31,7 +31,13 @@ const StyledMenuItem = styled(MenuItem)(() => ({
     color: "white",
 }))
 
-export function getStyledTextField(name: string, defaultValue: string, workouts: string[]) {
+// interface listProps {
+//     foodItems: Map<string, FoodItem>
+//     updateServings: (foodItem: FoodItem, amount:number) => void
+//     deleteItem: (foodItem:FoodItem) => void
+// }
+
+export function getStyledTextField(name: string, defaultValue: string, workouts: string[], setField: (value:string) => void) {
     return <StyledTextField
         id="outlined-select-currency"
         select
@@ -62,9 +68,9 @@ export function getStyledTextField(name: string, defaultValue: string, workouts:
             }
         }}
     >
-        {workouts.map((option) => (
-            <StyledMenuItem value={option}>
-                <b>{option}</b>
+        {workouts.map((routine) => (
+            <StyledMenuItem key={routine} value={routine} onClick={() => setField(routine)}>
+                <b>{routine}</b>
             </StyledMenuItem>
         ))}
     </StyledTextField>;
