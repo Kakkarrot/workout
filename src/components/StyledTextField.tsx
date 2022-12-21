@@ -2,11 +2,12 @@ import {styled} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import React from "react";
+import {useWindowDimensions} from "./WindowDimensions";
 
 const StyledTextField = styled(TextField)(() => ({
     color: 'white',
-    maxWidth: '100px',
-    minWidth: '100px',
+    maxWidth: 0.4 * useWindowDimensions().width,
+    minWidth: 0.4 * useWindowDimensions().width,
     '& label': {
         color: 'white',
     },
@@ -31,12 +32,6 @@ const StyledMenuItem = styled(MenuItem)(() => ({
     color: "white",
 }))
 
-// interface listProps {
-//     foodItems: Map<string, FoodItem>
-//     updateServings: (foodItem: FoodItem, amount:number) => void
-//     deleteItem: (foodItem:FoodItem) => void
-// }
-
 export function getStyledTextField(name: string, defaultValue: string, workouts: string[], setField: (value:string) => void) {
     return <StyledTextField
         id="outlined-select-currency"
@@ -49,7 +44,7 @@ export function getStyledTextField(name: string, defaultValue: string, workouts:
                 PaperProps: {
                     sx: {
                         backgroundColor: "black",
-                        border: '2px solid white',
+                        border: '0.1rem solid white',
                         "&& .Mui-selected": {
                             backgroundColor: "black",
                             "&: hover": {
