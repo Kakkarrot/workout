@@ -18,15 +18,12 @@ function App() {
 
     useEffect(() => {
         let newWorkout = new Set(workout)
-        primaryExercises?.forEach(x => newWorkout.add(x))
+        if (primaryExercises.size !== 0 && secondaryExercises.size !== 0) {
+            primaryExercises?.forEach(x => newWorkout.add(x))
+            secondaryExercises?.forEach(x => newWorkout.add(x))
+        }
         setWorkout(new Set(Array.from(newWorkout).sort(randomSort)))
-    }, [primaryExercises])
-
-    useEffect(() => {
-        let newWorkout = new Set(workout)
-        secondaryExercises?.forEach(x => newWorkout.add(x))
-        setWorkout(new Set(Array.from(newWorkout).sort(randomSort)))
-    }, [secondaryExercises])
+    }, [primaryExercises, secondaryExercises])
 
     function fetchExercisesFromFile(file: string, setter: (items: Set<string>) => void, count: number) {
         fetch(require(`./resources/${file}.txt`))
