@@ -1,11 +1,19 @@
 Archer Push-ups
 Clock Push-ups
 Decline Bench Press
+Decline Cable Fly
+Decline Dumbbell Fly
 Decline Dumbbell Press
 Flat Bench Press
+Flat Cable Fly
+Flat Dumbbell Fly
 Flat Dumbbell Press
 Incline Bench Press
+Incline Cable Fly
+Incline Dumbbell Fly
 Incline Dumbbell Press
+Overhead Barbell Extension
+Overhead Dumbbell Extension
 Planche Push-ups
 Sphinx Push-ups
 Strict Push-ups

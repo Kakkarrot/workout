@@ -1,3 +1,11 @@
 Chin-ups
+Chin-ups - Pause
 Deadlift
-Pull-ups
+Lat Pull Down - Overhand
+Lat Pull Down - Underhand
+Pull-ups - Narrow
+Pull-ups - Pause
+Pull-ups - Wide
+Row - Barbell
+Row - Cable
+Row - Dumbbell

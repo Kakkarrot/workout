@@ -1,6 +1,19 @@
 Anterior Barbell Raises
 Anterior Dumbbell Raises
+Barbell Curls
+Barbell Skull Crushers
+Concentration Curls
 Dips
+Dumbbell Skull Crushers
+Forearm Curls
+Forearm Dumbbell Hold
+Hammer Curls
 Inclined Dumbbell Curls
 Lateral Raises
-Shoulder Press
+Overhead Barbell Press
+Overhead Dumbbell Press
+Reverse Cable Fly
+Side Forearm Curls
+Triceps Extension Barbell
+Triceps Extension Cable
+Triceps Extension Dumbbell
