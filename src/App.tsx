@@ -12,17 +12,17 @@ function App() {
     const randomSort = () => 0.5 - Math.random();
     let [primary, setPrimary] = React.useState<string>(workouts.at(0)!);
     let [secondary, setSecondary] = React.useState<string>(workouts.at(1)!);
-    let [primaryExercises, setPrimaryExercises] = React.useState<Set<string>>(new Set())
-    let [secondaryExercises, setSecondaryExercises] = React.useState<Set<string>>(new Set())
-    let [workout, setWorkout] = React.useState<Set<string>>(new Set());
+    let [primaryExercises, setPrimaryExercises] = React.useState<Set<string>>(new Set<string>())
+    let [secondaryExercises, setSecondaryExercises] = React.useState<Set<string>>(new Set<string>())
+    let [workout, setWorkout] = React.useState<Set<string>>(new Set<string>());
 
     useEffect(() => {
-        let newWorkout = new Set(workout)
         if (primaryExercises.size !== 0 && secondaryExercises.size !== 0) {
+            let newWorkout = new Set<string>()
             primaryExercises?.forEach(x => newWorkout.add(x))
             secondaryExercises?.forEach(x => newWorkout.add(x))
+            setWorkout(new Set(Array.from(newWorkout).sort(randomSort)))
         }
-        setWorkout(new Set(Array.from(newWorkout).sort(randomSort)))
     }, [primaryExercises, secondaryExercises])
 
     function fetchExercisesFromFile(file: string, setter: (items: Set<string>) => void, count: number) {
@@ -34,7 +34,6 @@ function App() {
     function generate(): void {
         const primaryCount = 8;
         const secondaryCount = 4;
-        setWorkout(new Set())
         fetchExercisesFromFile(primary, setPrimaryExercises, primaryCount);
         fetchExercisesFromFile(secondary, setSecondaryExercises, secondaryCount);
     }
