@@ -1,67 +1,31 @@
 'use client';
 
-import {useState} from 'react';
+import {useMemo, useReducer} from 'react';
 import {PuzzleBoard} from './PuzzleBoard';
-import {PUZZLE_CELLS} from './puzzleDefinition';
-import type {CellKey} from './types';
-
-const MAX_MARKED_SQUARES = 64;
-const STARTING_CELL: CellKey = '0,0';
-const sectionByCell = new Map(PUZZLE_CELLS.map(cell => [cell.key, cell.section]));
+import {evaluatePath} from './puzzleRules';
+import {createPuzzleState, puzzleReducer, towerCellsFor} from './puzzleState';
 
 export function PuzzleGrid() {
-    const [movePath, setMovePath] = useState<readonly CellKey[]>([STARTING_CELL]);
-    const [towerMode, setTowerMode] = useState(false);
-    const [multiResetMode, setMultiResetMode] = useState(false);
-    const [towerBySection, setTowerBySection] = useState<ReadonlyMap<number, CellKey>>(new Map());
-
-    function selectCell(key: CellKey) {
-        if (towerMode) {
-            toggleTower(key);
-            return;
-        }
-
-        setMovePath(current => {
-            const existingMove = current.indexOf(key);
-
-            if (existingMove >= 0) {
-                const isSingleStepReset = existingMove === current.length - 2;
-                if (!multiResetMode && !isSingleStepReset) return current;
-                return current.slice(0, existingMove + 1);
-            }
-            if (current.length >= MAX_MARKED_SQUARES) return current;
-            return [...current, key];
-        });
-    }
-
-    function toggleTower(key: CellKey) {
-        const section = sectionByCell.get(key);
-        if (section === undefined) return;
-
-        setTowerBySection(current => {
-            const next = new Map(current);
-            if (next.get(section) === key) next.delete(section);
-            else next.set(section, key);
-            return next;
-        });
-    }
+    const [state, dispatch] = useReducer(puzzleReducer, undefined, createPuzzleState);
+    const towerCells = useMemo(() => towerCellsFor(state), [state]);
+    const {scores} = evaluatePath(state.movePath, towerCells);
+    const towerMode = state.mode === 'towers';
+    const multiResetMode = state.mode === 'multiReset';
 
     return (
         <section className="puzzle-workspace" aria-label="Interactive puzzle grid">
             <PuzzleBoard
-                movePath={movePath}
-                towerCells={new Set(towerBySection.values())}
-                onSelectCell={selectCell}
+                movePath={state.movePath}
+                scores={scores.map(score => score.toString())}
+                towerCells={towerCells}
+                onSelectCell={key => dispatch({type: 'selectCell', key})}
             />
             <div className="puzzle-modes">
                 <button
                     className={`puzzle-mode${towerMode ? ' puzzle-mode--active' : ''}`}
                     type="button"
                     aria-pressed={towerMode}
-                    onClick={() => {
-                        setTowerMode(current => !current);
-                        setMultiResetMode(false);
-                    }}
+                    onClick={() => dispatch({type: 'toggleMode', mode: 'towers'})}
                 >
                     Place towers
                 </button>
@@ -69,10 +33,7 @@ export function PuzzleGrid() {
                     className={`puzzle-mode${multiResetMode ? ' puzzle-mode--active' : ''}`}
                     type="button"
                     aria-pressed={multiResetMode}
-                    onClick={() => {
-                        setMultiResetMode(current => !current);
-                        setTowerMode(false);
-                    }}
+                    onClick={() => dispatch({type: 'toggleMode', mode: 'multiReset'})}
                 >
                     Multi reset
                 </button>

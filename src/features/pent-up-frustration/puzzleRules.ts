@@ -1,0 +1,57 @@
+import {PUZZLE_CONSTANTS} from './puzzleDefinition';
+import type {CellKey} from './types';
+
+export type ScoreClues = Readonly<Partial<Record<CellKey, string>>>;
+
+export type PathEvaluation = {
+    scores: readonly bigint[];
+    validLength: number;
+};
+
+export function evaluatePath(
+    path: readonly CellKey[],
+    towerCells: ReadonlySet<CellKey>,
+    clues: ScoreClues = PUZZLE_CONSTANTS,
+): PathEvaluation {
+    if (path.length === 0) return {scores: [], validLength: 0};
+
+    const scores: bigint[] = [BigInt(0)];
+
+    for (let move = 1; move < path.length; move += 1) {
+        const from = path[move - 1];
+        const to = path[move];
+
+        if (!isKnightMove(from, to)) return {scores, validLength: move};
+
+        const score = scoreMove(scores[move - 1], move, towerCells.has(from), towerCells.has(to));
+        if (score === null) return {scores, validLength: move};
+
+        const requiredScore = clues[to];
+        if (requiredScore !== undefined && score !== BigInt(requiredScore)) return {scores, validLength: move};
+
+        scores.push(score);
+    }
+
+    return {scores, validLength: path.length};
+}
+
+function scoreMove(score: bigint, move: number, fromTower: boolean, toTower: boolean) {
+    const multiplier = BigInt(move);
+
+    if (fromTower === toTower) return score + multiplier;
+    if (!fromTower && toTower) return score * multiplier;
+    if (score % multiplier !== BigInt(0)) return null;
+    return score / multiplier;
+}
+
+function isKnightMove(from: CellKey, to: CellKey) {
+    const [fromX, fromY] = coordinates(from);
+    const [toX, toY] = coordinates(to);
+    const xDistance = Math.abs(toX - fromX);
+    const yDistance = Math.abs(toY - fromY);
+    return (xDistance === 1 && yDistance === 2) || (xDistance === 2 && yDistance === 1);
+}
+
+function coordinates(key: CellKey) {
+    return key.split(',').map(Number) as [number, number];
+}

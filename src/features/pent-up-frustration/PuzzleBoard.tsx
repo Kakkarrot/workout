@@ -3,11 +3,12 @@ import type {CellKey} from './types';
 
 type PuzzleBoardProps = {
     movePath: readonly CellKey[];
+    scores: readonly string[];
     towerCells: ReadonlySet<CellKey>;
     onSelectCell: (key: CellKey) => void;
 };
 
-export function PuzzleBoard({movePath, towerCells, onSelectCell}: PuzzleBoardProps) {
+export function PuzzleBoard({movePath, scores, towerCells, onSelectCell}: PuzzleBoardProps) {
     const moveByCell = new Map(movePath.map((key, move) => [key, move]));
 
     return (
@@ -18,6 +19,7 @@ export function PuzzleBoard({movePath, towerCells, onSelectCell}: PuzzleBoardPro
             <div className="puzzle-grid" role="grid" aria-label={`${GRID_SIZE} by ${GRID_SIZE} puzzle grid`}>
                 {PUZZLE_CELLS.map(cell => {
                     const move = moveByCell.get(cell.key);
+                    const score = move === undefined ? undefined : scores[move];
 
                     return (
                         <button
@@ -35,12 +37,13 @@ export function PuzzleBoard({movePath, towerCells, onSelectCell}: PuzzleBoardPro
                                 cell.section,
                                 cell.constant,
                                 move,
+                                score,
                                 towerCells.has(cell.key),
                             )}
                             onClick={() => onSelectCell(cell.key)}
                             style={{backgroundColor: cell.sectionColor}}
                         >
-                            <CellNumber text={cell.constant}/>
+                            <CellNumber text={score ?? cell.constant}/>
                             {move !== undefined && <span className="puzzle-cell__move">{move}</span>}
                         </button>
                     );
@@ -73,12 +76,14 @@ function cellLabel(
     section: number,
     constant?: string,
     move?: number,
+    score?: string,
     hasTower = false,
 ) {
     const content = constant !== undefined ? `constant ${constant}` : 'empty';
     const moveDescription = move === undefined ? 'not visited' : `move ${move}`;
+    const scoreDescription = score === undefined ? '' : `, score ${score}`;
     const towerDescription = hasTower ? 'tower' : 'no tower';
-    return `Coordinate ${x}, ${y}, ${content}, ${moveDescription}, ${towerDescription}, section ${section}`;
+    return `Coordinate ${x}, ${y}, ${content}, ${moveDescription}${scoreDescription}, ${towerDescription}, section ${section}`;
 }
 
 function CellNumber({text}: {text?: string}) {

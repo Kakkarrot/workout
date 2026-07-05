@@ -5,7 +5,7 @@ export const GRID_SIZE = 8;
 
 const SECTION_COLORS = ['#ff9999', '#99d9ff', '#a9e6a1', '#ffe58f', '#d6b4ff'] as const;
 
-const CONSTANTS: Readonly<Partial<Record<CellKey, string>>> = {
+export const PUZZLE_CONSTANTS: Readonly<Partial<Record<CellKey, string>>> = {
     '0,0': '0',
     '5,7': '37',
     '7,7': '1100',
@@ -60,7 +60,7 @@ export const PUZZLE_CELLS: readonly PuzzleCell[] = Array.from(
             y,
             section,
             sectionColor: sectionColors[section],
-            constant: CONSTANTS[key],
+            constant: PUZZLE_CONSTANTS[key],
         };
     },
 );
