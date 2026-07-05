@@ -55,7 +55,6 @@ a { color: var(--app-foreground); }
     padding: 2rem 0 0.5rem;
     background: var(--app-background);
 }
-.puzzles-link { align-self: flex-start; font-weight: bold; }
 .generate-button { width: 100%; }
 .workout-select { width: 40vw; }
 .workout-select .MuiInputLabel-root, .workout-select .MuiSelect-select, .workout-select .MuiSvgIcon-root { color: var(--app-foreground); }

@@ -28,7 +28,15 @@ export function WorkoutGenerator() {
         <main className="workout-page">
             <Stack spacing={1} direction="column" style={{alignItems: 'center'}}>
                 <Stack className="workout-controls" spacing={1} direction="column" style={{alignItems: 'center'}}>
-                    <Link className="puzzles-link" href="/puzzles">Puzzles</Link>
+                    <Button
+                        className="generate-button"
+                        variant="contained"
+                        color="success"
+                        component={Link}
+                        href="/puzzles"
+                    >
+                        <strong>Mental Workout</strong>
+                    </Button>
                     <Button className="generate-button" variant="contained" color="success" onClick={generate}>
                         <strong>Generate</strong>
                     </Button>
