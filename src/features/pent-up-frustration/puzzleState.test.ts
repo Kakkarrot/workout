@@ -59,6 +59,14 @@ describe('puzzle state', () => {
         expect(select(conflicting, '0,0')).toBe(conflicting);
     });
 
+    it('toggles the starting tower after moves have been placed', () => {
+        let state = select(createPuzzleState(), '2,1');
+        state = select(state, '0,0');
+        expect(towerCellsFor(state)).toContain('0,0');
+        state = select(state, '0,0');
+        expect(towerCellsFor(state)).not.toContain('0,0');
+    });
+
     it('toggles erase mode on and off', () => {
         const erase = toggleErase(createPuzzleState());
         expect(erase.mode).toBe('erase');
@@ -96,8 +104,17 @@ describe('puzzle state', () => {
     it('erases only the selected populated move in erase mode', () => {
         let state = select(select(createPuzzleState(), '2,1'), '4,2');
         state = toggleErase(state);
-        expect(select(state, '2,1').moves).toEqual(['0,0', null, '4,2']);
+        const erased = select(state, '2,1');
+        expect(erased.moves).toEqual(['0,0', null, '4,2']);
+        expect(erased.selectedMove).toBe(0);
         expect(select(state, '0,0')).toBe(state);
+    });
+
+    it('selects the nearest earlier populated move after erase', () => {
+        let state = select(select(select(createPuzzleState(), '2,1'), '4,2'), '6,3');
+        state = toggleErase(state);
+        const erased = select(state, '6,3');
+        expect(erased.selectedMove).toBe(2);
     });
 
     it('preserves future displayed scores when erasing one move', () => {

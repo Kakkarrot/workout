@@ -60,11 +60,15 @@ function selectCell(state: PuzzleState, key: CellKey): PuzzleState {
 }
 
 function selectExistingCell(state: PuzzleState, key: CellKey, move: number): PuzzleState {
-    if (key === STARTING_CELL && state.moves.filter(Boolean).length === 1) {
+    if (key === STARTING_CELL && state.mode !== 'erase') {
         const board = toggleStartingTower(state);
         return board ? {...state, ...board} : state;
     }
     if (state.mode !== 'erase') return {...state, selectedMove: move};
     const board = eraseMove(state, move);
-    return board ? {...state, ...board} : state;
+    return board ? {...state, ...board, selectedMove: previousPopulatedMove(state.moves, move)} : state;
+}
+
+function previousPopulatedMove(moves: readonly (CellKey | null)[], before: number) {
+    return Math.max(0, moves.slice(0, before).findLastIndex(Boolean));
 }

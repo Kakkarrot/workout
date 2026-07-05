@@ -53,7 +53,7 @@ export function toggleStartingTower(board: PuzzleBoardState) {
     if (towerBySection.get(startingSection) === STARTING_CELL) towerBySection.delete(startingSection);
     else if (towerBySection.has(startingSection)) return null;
     else towerBySection.set(startingSection, STARTING_CELL);
-    return {...board, towerBySection};
+    return rebuildBoard({...board, towerBySection}, board.moves);
 }
 
 export function towerCellsFor(board: PuzzleBoardState) {
