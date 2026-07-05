@@ -20,7 +20,7 @@ export const PUZZLE_CONSTANTS: Readonly<Partial<Record<CellKey, string>>> = {
     '6,2': '1',
 };
 
-const SECTION_LAYOUT: Readonly<Record<number, ReadonlyArray<Coordinate>>> = {
+export const SECTION_LAYOUT: Readonly<Record<number, ReadonlyArray<Coordinate>>> = {
     1: [[0, 7], [1, 7], [2, 7], [3, 7], [4, 7]],
     2: [[5, 7], [6, 7], [7, 7], [7, 6], [7, 5]],
     3: [[0, 6], [1, 6], [2, 6], [0, 5], [2, 5]],
@@ -36,19 +36,29 @@ const SECTION_LAYOUT: Readonly<Record<number, ReadonlyArray<Coordinate>>> = {
     13: [[3, 4], [4, 4], [3, 3], [4, 3]],
 };
 
-const sectionByCell = new Map<CellKey, number>(
-    Object.entries(SECTION_LAYOUT).flatMap(([section, coordinates]) =>
-        coordinates.map(coordinate => [toCellKey(coordinate), Number(section)]),
-    ),
+export const PUZZLE_CELLS: readonly PuzzleCell[] = buildPuzzleCells(
+    GRID_SIZE,
+    SECTION_LAYOUT,
+    SECTION_COLORS,
+    PUZZLE_CONSTANTS,
 );
 
-const sectionColors = assignSectionColors(SECTION_LAYOUT, SECTION_COLORS);
+export function buildPuzzleCells(
+    gridSize: number,
+    sectionLayout: Readonly<Record<number, ReadonlyArray<Coordinate>>>,
+    sectionPalette: readonly string[],
+    constants: Readonly<Partial<Record<CellKey, string>>>,
+) {
+    const sectionByCell = new Map<CellKey, number>(
+        Object.entries(sectionLayout).flatMap(([section, coordinates]) =>
+            coordinates.map(coordinate => [toCellKey(coordinate), Number(section)]),
+        ),
+    );
+    const sectionColors = assignSectionColors(sectionLayout, sectionPalette);
 
-export const PUZZLE_CELLS: readonly PuzzleCell[] = Array.from(
-    {length: GRID_SIZE * GRID_SIZE},
-    (_, index) => {
-        const x = index % GRID_SIZE;
-        const y = GRID_SIZE - 1 - Math.floor(index / GRID_SIZE);
+    return Array.from({length: gridSize * gridSize}, (_, index): PuzzleCell => {
+        const x = index % gridSize;
+        const y = gridSize - 1 - Math.floor(index / gridSize);
         const key = toCellKey([x, y]);
         const section = sectionByCell.get(key);
 
@@ -60,10 +70,10 @@ export const PUZZLE_CELLS: readonly PuzzleCell[] = Array.from(
             y,
             section,
             sectionColor: sectionColors[section],
-            constant: PUZZLE_CONSTANTS[key],
+            constant: constants[key],
         };
-    },
-);
+    });
+}
 
 export function formatCoordinate(key: CellKey) {
     const [x, y] = key.split(',');

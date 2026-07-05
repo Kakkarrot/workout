@@ -9,7 +9,6 @@ export function PuzzleGrid() {
     const [state, dispatch] = useReducer(puzzleReducer, undefined, createPuzzleState);
     const towerCells = useMemo(() => towerCellsFor(state), [state]);
     const {scores} = evaluatePath(state.movePath, towerCells);
-    const towerMode = state.mode === 'towers';
     const multiResetMode = state.mode === 'multiReset';
 
     return (
@@ -22,28 +21,18 @@ export function PuzzleGrid() {
             />
             <div className="puzzle-modes">
                 <button
-                    className={`puzzle-mode${towerMode ? ' puzzle-mode--active' : ''}`}
-                    type="button"
-                    aria-pressed={towerMode}
-                    onClick={() => dispatch({type: 'toggleMode', mode: 'towers'})}
-                >
-                    Place towers
-                </button>
-                <button
                     className={`puzzle-mode${multiResetMode ? ' puzzle-mode--active' : ''}`}
                     type="button"
                     aria-pressed={multiResetMode}
-                    onClick={() => dispatch({type: 'toggleMode', mode: 'multiReset'})}
+                    onClick={() => dispatch({type: 'toggleMultiReset'})}
                 >
                     Multi reset
                 </button>
             </div>
             <p className="puzzle-help">
-                {towerMode
-                    ? 'Select a square to add or remove a tower. Each colored section can have one tower.'
-                    : multiResetMode
-                        ? 'Select any earlier move to reset the path to that square.'
-                        : 'Select squares in move order. Select the previous move to undo one step.'}
+                {multiResetMode
+                    ? 'Select a populated square to remove it and every move after it.'
+                    : 'Select squares in move order. Select the latest move to undo it.'}
             </p>
         </section>
     );

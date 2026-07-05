@@ -1,11 +1,11 @@
 import {PUZZLE_CELLS} from './puzzleDefinition';
-import {evaluatePath} from './puzzleRules';
+import {destinationElevation, evaluatePath} from './puzzleRules';
 import type {CellKey} from './types';
 
 export const MAX_MARKED_SQUARES = 64;
 export const STARTING_CELL: CellKey = '0,0';
 
-export type PuzzleMode = 'moves' | 'towers' | 'multiReset';
+export type PuzzleMode = 'moves' | 'multiReset';
 
 export type PuzzleState = {
     movePath: readonly CellKey[];
@@ -15,22 +15,21 @@ export type PuzzleState = {
 
 export type PuzzleAction =
     | {type: 'selectCell'; key: CellKey}
-    | {type: 'toggleMode'; mode: Exclude<PuzzleMode, 'moves'>};
+    | {type: 'toggleMultiReset'};
 
 const sectionByCell = new Map(PUZZLE_CELLS.map(cell => [cell.key, cell.section]));
+const startingSection = sectionByCell.get(STARTING_CELL) as number;
 
 export function createPuzzleState(): PuzzleState {
     return {movePath: [STARTING_CELL], mode: 'moves', towerBySection: new Map()};
 }
 
 export function puzzleReducer(state: PuzzleState, action: PuzzleAction): PuzzleState {
-    if (action.type === 'toggleMode') {
-        return {...state, mode: state.mode === action.mode ? 'moves' : action.mode};
+    if (action.type === 'toggleMultiReset') {
+        return {...state, mode: state.mode === 'multiReset' ? 'moves' : 'multiReset'};
     }
 
-    return state.mode === 'towers'
-        ? toggleTower(state, action.key)
-        : updateMovePath(state, action.key);
+    return updateMovePath(state, action.key);
 }
 
 export function towerCellsFor(state: PuzzleState) {
@@ -41,31 +40,56 @@ function updateMovePath(state: PuzzleState, key: CellKey): PuzzleState {
     const existingMove = state.movePath.indexOf(key);
 
     if (existingMove >= 0) {
-        const isSingleStepReset = existingMove === state.movePath.length - 2;
-        if (state.mode !== 'multiReset' && !isSingleStepReset) return state;
-        return {...state, movePath: state.movePath.slice(0, existingMove + 1)};
+        if (key === STARTING_CELL && state.movePath.length === 1) return toggleStartingTower(state);
+        const isLatestMove = existingMove === state.movePath.length - 1 && existingMove > 0;
+        if (state.mode !== 'multiReset' && !isLatestMove) return state;
+        return rebuildPath(
+            state.movePath.slice(0, Math.max(1, existingMove)),
+            state.mode,
+            state.towerBySection.get(startingSection) === STARTING_CELL,
+        );
     }
 
     if (state.movePath.length >= MAX_MARKED_SQUARES) return state;
 
-    const nextPath = [...state.movePath, key];
-    const evaluation = evaluatePath(nextPath, towerCellsFor(state));
-    return evaluation.validLength === nextPath.length ? {...state, movePath: nextPath} : state;
+    return appendMove(state, key);
 }
 
-function toggleTower(state: PuzzleState, key: CellKey): PuzzleState {
+function appendMove(state: PuzzleState, key: CellKey): PuzzleState {
+    const from = state.movePath[state.movePath.length - 1];
+    const towers = towerCellsFor(state);
+    const toIsTower = destinationElevation(from, key, towers.has(from));
+    if (toIsTower === null) return state;
+
     const section = sectionByCell.get(key);
     if (section === undefined) return state;
 
     const towerBySection = new Map(state.towerBySection);
-    if (towerBySection.get(section) === key) towerBySection.delete(section);
-    else towerBySection.set(section, key);
+    const regionTower = towerBySection.get(section);
 
-    const towers = new Set(towerBySection.values());
-    const evaluation = evaluatePath(state.movePath, towers);
-    const movePath = evaluation.validLength === state.movePath.length
-        ? state.movePath
-        : state.movePath.slice(0, evaluation.validLength);
+    if (toIsTower) {
+        if (regionTower !== undefined && regionTower !== key) return state;
+        towerBySection.set(section, key);
+    } else if (regionTower === key) {
+        return state;
+    }
 
-    return {...state, movePath, towerBySection};
+    const movePath = [...state.movePath, key];
+    const evaluation = evaluatePath(movePath, new Set(towerBySection.values()));
+    return evaluation.validLength === movePath.length ? {...state, movePath, towerBySection} : state;
+}
+
+function rebuildPath(path: readonly CellKey[], mode: PuzzleMode, startingTower: boolean) {
+    let rebuilt: PuzzleState = {...createPuzzleState(), mode};
+    if (startingTower) rebuilt = toggleStartingTower(rebuilt);
+    for (const key of path.slice(1)) rebuilt = appendMove(rebuilt, key);
+    return rebuilt;
+}
+
+function toggleStartingTower(state: PuzzleState): PuzzleState {
+    const towerBySection = new Map(state.towerBySection);
+    if (towerBySection.get(startingSection) === STARTING_CELL) towerBySection.delete(startingSection);
+    else if (towerBySection.has(startingSection)) return state;
+    else towerBySection.set(startingSection, STARTING_CELL);
+    return {...state, towerBySection};
 }

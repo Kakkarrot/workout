@@ -19,14 +19,14 @@ export function assignSectionColors(
         for (const neighborKey of [`${x + 1},${y}`, `${x},${y + 1}`] as CellKey[]) {
             const neighbor = sectionByCell.get(neighborKey);
             if (neighbor && neighbor !== section) {
-                neighbors.get(section)?.add(neighbor);
-                neighbors.get(neighbor)?.add(section);
+                neighbors.get(section)!.add(neighbor);
+                neighbors.get(neighbor)!.add(section);
             }
         }
     }
 
     const coloringOrder = sectionIds.sort((a, b) =>
-        (neighbors.get(b)?.size ?? 0) - (neighbors.get(a)?.size ?? 0) || a - b,
+        neighbors.get(b)!.size - neighbors.get(a)!.size || a - b,
     );
     const assignments: Record<number, number> = {};
 
@@ -35,7 +35,7 @@ export function assignSectionColors(
 
         const section = coloringOrder[index];
         const unavailable = new Set(
-            Array.from(neighbors.get(section) ?? []).map(neighbor => assignments[neighbor]),
+            Array.from(neighbors.get(section)!).map(neighbor => assignments[neighbor]),
         );
 
         for (let color = 0; color < palette.length; color++) {

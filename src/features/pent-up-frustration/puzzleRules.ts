@@ -21,7 +21,10 @@ export function evaluatePath(
         const from = path[move - 1];
         const to = path[move];
 
-        if (!isKnightMove(from, to)) return {scores, validLength: move};
+        const expectedElevation = destinationElevation(from, to, towerCells.has(from));
+        if (expectedElevation === null || expectedElevation !== towerCells.has(to)) {
+            return {scores, validLength: move};
+        }
 
         const score = scoreMove(scores[move - 1], move, towerCells.has(from), towerCells.has(to));
         if (score === null) return {scores, validLength: move};
@@ -44,12 +47,19 @@ function scoreMove(score: bigint, move: number, fromTower: boolean, toTower: boo
     return score / multiplier;
 }
 
-function isKnightMove(from: CellKey, to: CellKey) {
+export function destinationElevation(from: CellKey, to: CellKey, fromIsTower: boolean) {
     const [fromX, fromY] = coordinates(from);
     const [toX, toY] = coordinates(to);
     const xDistance = Math.abs(toX - fromX);
     const yDistance = Math.abs(toY - fromY);
-    return (xDistance === 1 && yDistance === 2) || (xDistance === 2 && yDistance === 1);
+
+    if ((xDistance === 1 && yDistance === 2) || (xDistance === 2 && yDistance === 1)) {
+        return fromIsTower;
+    }
+    if ((xDistance === 0 && yDistance === 2) || (xDistance === 2 && yDistance === 0)) {
+        return !fromIsTower;
+    }
+    return null;
 }
 
 function coordinates(key: CellKey) {

@@ -17,8 +17,8 @@ describe('evaluatePath', () => {
     });
 
     it('multiplies when moving up', () => {
-        const towers = new Set<CellKey>(['3,3']);
-        expect(evaluatePath(['0,0', '1,2', '3,3'], towers, noClues)).toEqual({
+        const towers = new Set<CellKey>(['1,4']);
+        expect(evaluatePath(['0,0', '1,2', '1,4'], towers, noClues)).toEqual({
             scores: [BigInt(0), BigInt(1), BigInt(2)],
             validLength: 3,
         });
@@ -26,26 +26,32 @@ describe('evaluatePath', () => {
 
     it('divides evenly when moving down', () => {
         const towers = new Set<CellKey>(['0,0', '1,2', '3,3']);
-        expect(evaluatePath(['0,0', '1,2', '3,3', '5,4'], towers, noClues)).toEqual({
+        expect(evaluatePath(['0,0', '1,2', '3,3', '3,5'], towers, noClues)).toEqual({
             scores: [BigInt(0), BigInt(1), BigInt(3), BigInt(1)],
             validLength: 4,
         });
     });
 
     it('rejects a downward move when the score is not evenly divisible', () => {
-        const towers = new Set<CellKey>(['1,2', '3,3']);
-        expect(evaluatePath(['0,0', '1,2', '3,3', '5,4'], towers, noClues)).toEqual({
+        const towers = new Set<CellKey>(['0,2', '1,4']);
+        expect(evaluatePath(['0,0', '0,2', '1,4', '1,6'], towers, noClues)).toEqual({
             scores: [BigInt(0), BigInt(0), BigInt(2)],
             validLength: 3,
         });
     });
 
-    it('accepts both knight orientations and rejects other movement', () => {
+    it('accepts both planar knight orientations and rejects other movement', () => {
         expect(evaluatePath(['0,0', '2,1'], noTowers, noClues).validLength).toBe(2);
         expect(evaluatePath(['0,0', '1,1'], noTowers, noClues)).toEqual({
             scores: [BigInt(0)],
             validLength: 1,
         });
+    });
+
+    it('requires opposite elevations for a vertical knight move', () => {
+        expect(evaluatePath(['0,0', '0,2'], noTowers, noClues).validLength).toBe(1);
+        expect(evaluatePath(['0,0', '0,2'], new Set<CellKey>(['0,2']), noClues).validLength).toBe(2);
+        expect(evaluatePath(['0,0', '2,0'], new Set<CellKey>(['2,0']), noClues).validLength).toBe(2);
     });
 
     it('accepts a matching clue and rejects a mismatched clue', () => {
