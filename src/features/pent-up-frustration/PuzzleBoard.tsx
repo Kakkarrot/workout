@@ -1,17 +1,23 @@
 import {GRID_SIZE, PUZZLE_CELLS} from './puzzleDefinition';
 import type {CellKey} from './types';
 
-type PuzzleBoardProps = {
+export type PuzzleBoardModel = {
     moves: readonly (CellKey | null)[];
     selectedMove: number;
     scores: readonly (string | undefined)[];
     towerCells: ReadonlySet<CellKey>;
     invalidMoves: ReadonlySet<number>;
+    highlightedCells: ReadonlySet<CellKey>;
+};
+
+type PuzzleBoardProps = {
+    board: PuzzleBoardModel;
     disabled: boolean;
     onSelectCell: (key: CellKey) => void;
 };
 
-export function PuzzleBoard({moves, selectedMove, scores, towerCells, invalidMoves, disabled, onSelectCell}: PuzzleBoardProps) {
+export function PuzzleBoard({board, disabled, onSelectCell}: PuzzleBoardProps) {
+    const {moves, selectedMove, scores, towerCells, invalidMoves, highlightedCells} = board;
     const moveByCell = new Map(moves.flatMap((key, move) => key ? [[key, move] as const] : []));
 
     return (
@@ -32,6 +38,7 @@ export function PuzzleBoard({moves, selectedMove, scores, towerCells, invalidMov
                                 move === selectedMove,
                                 towerCells.has(cell.key),
                                 move !== undefined && invalidMoves.has(move),
+                                highlightedCells.has(cell.key),
                             )}
                             key={cell.key}
                             type="button"
@@ -68,13 +75,16 @@ function axisValues() {
     return Array.from({length: GRID_SIZE}, (_, index) => index);
 }
 
-function cellClassName(isConstant: boolean, isCurrentMove: boolean, hasTower: boolean, isInvalid: boolean) {
+function cellClassName(isConstant: boolean, isCurrentMove: boolean, hasTower: boolean, isInvalid: boolean, isHighlighted: boolean) {
+    const hasOtherBorder = isCurrentMove || hasTower || isInvalid;
     return [
         'puzzle-cell',
         isConstant && 'puzzle-cell--prefilled',
         isCurrentMove && 'puzzle-cell--selected',
         hasTower && 'puzzle-cell--tower',
         isInvalid && 'puzzle-cell--invalid',
+        isHighlighted && 'puzzle-cell--highlighted',
+        isHighlighted && hasOtherBorder && 'puzzle-cell--highlighted-mixed',
     ].filter(Boolean).join(' ');
 }
 

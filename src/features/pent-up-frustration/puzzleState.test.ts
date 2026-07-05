@@ -18,6 +18,10 @@ function toggleErase(state: PuzzleState) {
     return puzzleReducer(state, {type: 'toggleErase'});
 }
 
+function toggleHighlight(state: PuzzleState) {
+    return puzzleReducer(state, {type: 'toggleHighlight'});
+}
+
 describe('puzzle state', () => {
     it('creates the initial move state', () => {
         const state = createPuzzleState();
@@ -26,6 +30,7 @@ describe('puzzle state', () => {
             displayScores: [BigInt(0)],
             selectedMove: 0,
             mode: 'moves',
+            highlightedCells: new Set(),
             towerBySection: new Map(),
         });
         expect(towerCellsFor(state)).toEqual(new Set());
@@ -67,6 +72,30 @@ describe('puzzle state', () => {
         expect(toggleErase(erase).mode).toBe('moves');
     });
 
+    it('toggles highlights without changing the board', () => {
+        const highlighting = toggleHighlight(createPuzzleState());
+        expect(highlighting.mode).toBe('highlight');
+
+        const highlighted = select(highlighting, '2,1');
+        expect(highlighted.highlightedCells).toEqual(new Set(['2,1']));
+        expect(highlighted.moves).toEqual(['0,0']);
+
+        const unhighlighted = select(highlighted, '2,1');
+        expect(unhighlighted.highlightedCells).toEqual(new Set());
+    });
+
+    it('keeps highlights while switching from highlight mode to erase mode', () => {
+        let state = select(createPuzzleState(), '2,1');
+        state = toggleHighlight(state);
+        state = select(state, '2,1');
+        state = toggleErase(state);
+        state = select(state, '2,1');
+
+        expect(state.mode).toBe('erase');
+        expect(state.highlightedCells).toEqual(new Set(['2,1']));
+        expect(state.moves).toEqual(['0,0']);
+    });
+
     it('stores both valid and partially verified moves', () => {
         const initial = createPuzzleState();
         const valid = select(initial, '2,1');
@@ -102,6 +131,12 @@ describe('puzzle state', () => {
         expect(erased.moves).toEqual(['0,0', null, '4,2']);
         expect(erased.selectedMove).toBe(0);
         expect(select(state, '0,0')).toBe(state);
+    });
+
+    it('ignores empty squares in erase mode', () => {
+        const state = toggleErase(createPuzzleState());
+        expect(select(state, '2,1')).toBe(state);
+        expect(state.moves).toEqual(['0,0']);
     });
 
     it('selects the nearest earlier populated move after erase', () => {
@@ -208,6 +243,7 @@ describe('puzzle state', () => {
             displayScores: [BigInt(0), BigInt(0), BigInt(2)],
             selectedMove: 2,
             mode: 'moves',
+            highlightedCells: new Set(),
             towerBySection: new Map([[11, '0,2'], [12, '1,4']]),
         };
         expect(select(state, '1,6').moves[3]).toBe('1,6');

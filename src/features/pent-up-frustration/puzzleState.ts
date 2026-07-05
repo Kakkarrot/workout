@@ -14,20 +14,22 @@ import type {CellKey} from './types';
 
 export {MAX_MARKED_SQUARES, MAX_MOVE, STARTING_CELL, towerCellsFor} from './puzzleBoardState';
 
-export type PuzzleMode = 'moves' | 'erase';
+export type PuzzleMode = 'moves' | 'erase' | 'highlight';
 
 export type PuzzleState = PuzzleBoardState & {
     selectedMove: number;
     mode: PuzzleMode;
+    highlightedCells: ReadonlySet<CellKey>;
 };
 
 export type PuzzleAction =
     | {type: 'selectCell'; key: CellKey}
     | {type: 'toggleErase'}
+    | {type: 'toggleHighlight'}
     | {type: 'load'; state: PuzzleState};
 
 export function createPuzzleState(): PuzzleState {
-    return {...createPuzzleBoardState(), selectedMove: 0, mode: 'moves'};
+    return {...createPuzzleBoardState(), selectedMove: 0, mode: 'moves', highlightedCells: new Set()};
 }
 
 export function puzzleReducer(state: PuzzleState, action: PuzzleAction): PuzzleState {
@@ -35,6 +37,10 @@ export function puzzleReducer(state: PuzzleState, action: PuzzleAction): PuzzleS
     if (action.type === 'toggleErase') {
         return {...state, mode: state.mode === 'erase' ? 'moves' : 'erase'};
     }
+    if (action.type === 'toggleHighlight') {
+        return {...state, mode: state.mode === 'highlight' ? 'moves' : 'highlight'};
+    }
+    if (state.mode === 'highlight') return toggleHighlight(state, action.key);
     return selectCell(state, action.key);
 }
 
@@ -49,6 +55,7 @@ export function contiguousMovePath(state: PuzzleState): readonly CellKey[] {
 function selectCell(state: PuzzleState, key: CellKey): PuzzleState {
     const existingMove = state.moves.indexOf(key);
     if (existingMove >= 0) return selectExistingCell(state, key, existingMove);
+    if (state.mode === 'erase') return state;
 
     const board = placeFollowingMove(state, state.selectedMove, key);
     return board ? {...state, ...board, selectedMove: state.selectedMove + 1} : state;
@@ -66,4 +73,11 @@ function selectExistingCell(state: PuzzleState, key: CellKey, move: number): Puz
 
 function previousPopulatedMove(moves: readonly (CellKey | null)[], before: number) {
     return Math.max(0, moves.slice(0, before).findLastIndex(Boolean));
+}
+
+function toggleHighlight(state: PuzzleState, key: CellKey): PuzzleState {
+    const highlightedCells = new Set(state.highlightedCells);
+    if (highlightedCells.has(key)) highlightedCells.delete(key);
+    else highlightedCells.add(key);
+    return {...state, highlightedCells};
 }

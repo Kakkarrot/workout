@@ -2,6 +2,7 @@
 
 import {useMemo} from 'react';
 import {PuzzleBoard} from './PuzzleBoard';
+import {PuzzleControls} from './PuzzleControls';
 import {PuzzleInstructions} from './PuzzleInstructions';
 import {PUZZLE_ID} from './puzzleDefinition';
 import {evaluateProgress} from './puzzleProgress';
@@ -10,52 +11,41 @@ import {STARTING_CELL, scoreSequenceStartFor, towerCellsFor} from './puzzleState
 import {usePuzzleBoard} from './usePuzzleBoard';
 
 export function PuzzleGrid() {
-    const {state, isLoading, isSaving, status, selectCell, toggleErase, save} = usePuzzleBoard(PUZZLE_ID);
+    const {state, isLoading, isSaving, status, selectCell, toggleErase, toggleHighlight, save} = usePuzzleBoard(PUZZLE_ID);
     const towerCells = useMemo(() => towerCellsFor(state), [state]);
     const progress = evaluateProgress(state.moves, towerCells.has(STARTING_CELL));
-    const eraseMode = state.mode === 'erase';
     const scoreSequenceStart = scoreSequenceStartFor(state);
+    const board = {
+        moves: state.moves,
+        selectedMove: state.selectedMove,
+        scores: state.displayScores.map(score => score?.toString()),
+        towerCells,
+        invalidMoves: progress.invalidMoves,
+        highlightedCells: state.highlightedCells,
+    };
 
     return (
         <>
             <section className="puzzle-workspace" aria-label="Interactive puzzle grid">
                 {!isLoading && (
                     <PuzzleBoard
-                        moves={state.moves}
-                        selectedMove={state.selectedMove}
-                        scores={state.displayScores.map(score => score?.toString())}
-                        towerCells={towerCells}
-                        invalidMoves={progress.invalidMoves}
+                        board={board}
                         disabled={isSaving}
                         onSelectCell={selectCell}
                     />
                 )}
-                <div className="puzzle-modes">
-                    <span className="active-move" aria-live="polite">Move: {state.selectedMove}</span>
-                    <button
-                        className={`puzzle-mode${eraseMode ? ' puzzle-mode--active' : ''}`}
-                        type="button"
-                        aria-pressed={eraseMode}
-                        disabled={isLoading || isSaving}
-                        onClick={toggleErase}
-                    >
-                        Erase
-                    </button>
-                    <button
-                        className="puzzle-mode"
-                        type="button"
-                        disabled={isLoading || isSaving}
-                        onClick={() => void save()}
-                    >
-                        {isSaving ? 'Saving…' : 'Save'}
-                    </button>
-                </div>
+                <PuzzleControls
+                    state={{
+                        selectedMove: state.selectedMove,
+                        mode: state.mode,
+                        disabled: isLoading || isSaving,
+                        isSaving,
+                    }}
+                    onToggleErase={toggleErase}
+                    onToggleHighlight={toggleHighlight}
+                    onSave={save}
+                />
                 <p className="puzzle-status" aria-live="polite">{status}</p>
-                <p className="puzzle-help">
-                    {eraseMode
-                        ? 'Select a populated square to erase that move.'
-                        : 'Select a populated square to make it active, or an empty square to play the following move.'}
-                </p>
             </section>
             {!isLoading && (
                 <ScoreSequenceGenerator start={scoreSequenceStart}/>

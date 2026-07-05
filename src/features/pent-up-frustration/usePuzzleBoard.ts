@@ -51,6 +51,7 @@ export function usePuzzleBoard(puzzleId: string) {
         status,
         selectCell: (key: CellKey) => dispatch({type: 'selectCell', key}),
         toggleErase: () => dispatch({type: 'toggleErase'}),
+        toggleHighlight: () => dispatch({type: 'toggleHighlight'}),
         save,
     };
 }

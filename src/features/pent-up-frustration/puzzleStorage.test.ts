@@ -17,6 +17,17 @@ describe('puzzle storage', () => {
         expect(restorePuzzleState(JSON.parse(JSON.stringify(storedState)))).toEqual(state);
     });
 
+    it('does not persist temporary highlights', () => {
+        let state = puzzleReducer(createPuzzleState(), {type: 'toggleHighlight'});
+        state = puzzleReducer(state, {type: 'selectCell', key: '2,1'});
+
+        expect(storePuzzleState(state)).toEqual({
+            version: 2,
+            moves: ['0,0'],
+            startingCellIsTower: false,
+        });
+    });
+
     it('restores the legacy tower-cell schema for existing boards', () => {
         const legacyState = {movePath: ['0,0', '0,2'], towerCells: ['0,2']};
         const restored = restorePuzzleState(legacyState);

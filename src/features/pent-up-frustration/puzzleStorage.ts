@@ -41,7 +41,7 @@ function replayPuzzleState(moves: readonly (CellKey | null)[], startingCellIsTow
     const board = hydratePuzzleBoardState(moves, startingCellIsTower);
     if (!board) return null;
     const selectedMove = Math.max(0, board.moves.findLastIndex(Boolean));
-    return {...board, selectedMove, mode: 'moves' as const};
+    return {...board, selectedMove, mode: 'moves' as const, highlightedCells: new Set<CellKey>()};
 }
 
 function decodePuzzleState(value: unknown): DecodedPuzzleState | null {

@@ -149,6 +149,19 @@ a { color: var(--app-foreground); }
 .puzzle-cell--invalid { z-index: 2; outline: 3px solid #c62828; outline-offset: -3px; }
 .puzzle-cell--tower { box-shadow: inset 0 0 0 4px var(--puzzle-surface); }
 
+.puzzle-cell--highlighted::after {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border: 3px solid #9a7400;
+    content: '';
+    pointer-events: none;
+}
+
+.puzzle-cell--highlighted-mixed::after {
+    border-style: dashed;
+}
+
 .puzzle-cell__move {
     position: absolute;
     bottom: 0.18rem;
@@ -219,6 +232,19 @@ a { color: var(--app-foreground); }
     color: #303741;
     font: 700 0.95rem system-ui, sans-serif;
     cursor: pointer;
+}
+
+.puzzle-mode--icon {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    padding: 0;
+}
+
+.puzzle-mode--icon svg {
+    width: 1.35rem;
+    height: 1.35rem;
+    fill: currentColor;
 }
 
 .puzzle-mode--active {
