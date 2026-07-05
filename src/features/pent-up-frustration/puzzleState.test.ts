@@ -23,6 +23,11 @@ describe('puzzle state', () => {
         expect(towerCellsFor(state)).toEqual(new Set());
     });
 
+    it('loads a complete state', () => {
+        const loaded = {...createPuzzleState(), mode: 'multiReset' as const};
+        expect(puzzleReducer(createPuzzleState(), {type: 'load', state: loaded})).toBe(loaded);
+    });
+
     it('toggles a tower on the starting square before movement', () => {
         const withTower = select(createPuzzleState(), '0,0');
         expect(towerCellsFor(withTower)).toEqual(new Set(['0,0']));

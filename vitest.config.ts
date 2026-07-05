@@ -9,6 +9,7 @@ export default defineConfig({
                 'src/features/pent-up-frustration/puzzleState.ts',
                 'src/features/pent-up-frustration/puzzleDefinition.ts',
                 'src/features/pent-up-frustration/sectionColoring.ts',
+                'src/features/pent-up-frustration/scoreSequences.ts',
             ],
             thresholds: {
                 lines: 100,
