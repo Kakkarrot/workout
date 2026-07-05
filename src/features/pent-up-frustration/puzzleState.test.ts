@@ -3,6 +3,8 @@ import {
     MAX_MARKED_SQUARES,
     createPuzzleState,
     puzzleReducer,
+    scoreSequenceStartFor,
+    contiguousMovePath,
     towerCellsFor,
     type PuzzleState,
 } from './puzzleState';
@@ -12,20 +14,37 @@ function select(state: PuzzleState, key: CellKey) {
     return puzzleReducer(state, {type: 'selectCell', key});
 }
 
-function toggleMultiReset(state: PuzzleState) {
-    return puzzleReducer(state, {type: 'toggleMultiReset'});
+function toggleErase(state: PuzzleState) {
+    return puzzleReducer(state, {type: 'toggleErase'});
 }
 
 describe('puzzle state', () => {
     it('creates the initial move state', () => {
         const state = createPuzzleState();
-        expect(state).toEqual({movePath: ['0,0'], mode: 'moves', towerBySection: new Map()});
+        expect(state).toEqual({
+            moves: ['0,0'],
+            displayScores: [BigInt(0)],
+            selectedMove: 1,
+            mode: 'moves',
+            towerBySection: new Map(),
+        });
         expect(towerCellsFor(state)).toEqual(new Set());
     });
 
     it('loads a complete state', () => {
-        const loaded = {...createPuzzleState(), mode: 'multiReset' as const};
+        const loaded = {...createPuzzleState(), mode: 'erase' as const};
         expect(puzzleReducer(createPuzzleState(), {type: 'load', state: loaded})).toBe(loaded);
+    });
+
+    it('clamps the selected move to the playable range', () => {
+        const state = createPuzzleState();
+        expect(puzzleReducer(state, {type: 'selectMove', move: -1}).selectedMove).toBe(1);
+        expect(puzzleReducer(state, {type: 'selectMove', move: 100}).selectedMove).toBe(64);
+    });
+
+    it('returns only the connected move prefix', () => {
+        const state = {...createPuzzleState(), moves: ['0,0', '2,1', null, '7,7'] as const};
+        expect(contiguousMovePath(state)).toEqual(['0,0', '2,1']);
     });
 
     it('toggles a tower on the starting square before movement', () => {
@@ -40,62 +59,100 @@ describe('puzzle state', () => {
         expect(select(conflicting, '0,0')).toBe(conflicting);
     });
 
-    it('toggles multi-reset mode on and off', () => {
-        const multiReset = toggleMultiReset(createPuzzleState());
-        expect(multiReset.mode).toBe('multiReset');
-        expect(toggleMultiReset(multiReset).mode).toBe('moves');
+    it('toggles erase mode on and off', () => {
+        const erase = toggleErase(createPuzzleState());
+        expect(erase.mode).toBe('erase');
+        expect(toggleErase(erase).mode).toBe('moves');
     });
 
-    it('adds valid moves and rejects invalid moves', () => {
+    it('stores both valid and partially verified moves', () => {
         const initial = createPuzzleState();
         const valid = select(initial, '2,1');
-        expect(valid.movePath).toEqual(['0,0', '2,1']);
-        expect(select(initial, '1,1')).toBe(initial);
+        expect(valid.moves).toEqual(['0,0', '2,1']);
+        expect(select(initial, '1,1').moves).toEqual(['0,0', '1,1']);
     });
 
-    it('allows only a one-step reset in normal mode', () => {
+    it('selects the tapped move when a populated square is tapped', () => {
         const state = select(select(createPuzzleState(), '2,1'), '4,2');
-        expect(select(state, '4,2').movePath).toEqual(['0,0', '2,1']);
-        expect(select(state, '2,1')).toBe(state);
+        const selected = select(state, '2,1');
+        expect(selected.moves).toEqual(state.moves);
+        expect(selected.selectedMove).toBe(1);
+    });
+
+    it('starts score generation after the selected move using its score', () => {
+        let state = select(select(createPuzzleState(), '2,1'), '4,2');
+        state = select(state, '4,2');
+
+        expect(scoreSequenceStartFor(state)).toEqual({score: BigInt(3), move: 3, height: 0});
+        const startingTower = select(createPuzzleState(), '0,0');
+        expect(scoreSequenceStartFor(startingTower)).toBeNull();
+        const detached = puzzleReducer(createPuzzleState(), {type: 'selectMove', move: 6});
+        expect(scoreSequenceStartFor(detached)).toBeNull();
+        let selectedTower = select(createPuzzleState(), '0,2');
+        selectedTower = select(selectedTower, '0,2');
+        expect(scoreSequenceStartFor(selectedTower)).toEqual({score: BigInt(0), move: 2, height: 1});
+    });
+
+    it('erases only the selected populated move in erase mode', () => {
+        let state = select(select(createPuzzleState(), '2,1'), '4,2');
+        state = toggleErase(state);
+        expect(select(state, '2,1').moves).toEqual(['0,0', null, '4,2']);
         expect(select(state, '0,0')).toBe(state);
     });
 
-    it('allows resetting to any prior move in multi-reset mode', () => {
-        let state = select(select(createPuzzleState(), '2,1'), '4,2');
-        state = toggleMultiReset(state);
-        expect(select(state, '0,0').movePath).toEqual(['0,0']);
-        expect(select(state, '2,1').movePath).toEqual(['0,0']);
+    it('preserves future displayed scores when erasing one move', () => {
+        let state = select(select(select(createPuzzleState(), '2,1'), '4,2'), '6,3');
+        const futureScores = state.displayScores.slice(2);
+        state = toggleErase(state);
+        state = select(state, '2,1');
+
+        expect(state.displayScores[1]).toBeUndefined();
+        expect(state.displayScores.slice(2)).toEqual(futureScores);
+        expect(state.moves).toEqual(['0,0', null, '4,2', '6,3']);
+    });
+
+    it('preserves future towers while removing a tower on the erased move', () => {
+        let state = select(select(createPuzzleState(), '0,2'), '1,4');
+        expect(towerCellsFor(state)).toEqual(new Set(['0,2', '1,4']));
+
+        state = toggleErase(state);
+        state = select(state, '0,2');
+
+        expect(state.moves).toEqual(['0,0', null, '1,4']);
+        expect(towerCellsFor(state)).toEqual(new Set(['1,4']));
+    });
+
+    it('does not overwrite a populated move slot', () => {
+        const state = select(createPuzzleState(), '2,1');
+        const selected = puzzleReducer(state, {type: 'selectMove', move: 1});
+        expect(select(selected, '4,2')).toBe(selected);
+    });
+
+    it('wraps auto-advance to the first empty move after move 64', () => {
+        const moves = Array<CellKey | null>(65).fill(null);
+        moves[0] = '0,0';
+        moves[2] = '2,1';
+        const state = {...createPuzzleState(), moves, selectedMove: 64};
+        expect(select(state, '7,7').selectedMove).toBe(1);
+    });
+
+    it('keeps placement when an existing connected prefix has invalid geometry', () => {
+        const state: PuzzleState = {...createPuzzleState(), moves: ['0,0', '1,1', null], selectedMove: 3};
+        expect(select(state, '7,7').moves).toEqual(['0,0', '1,1', null, '7,7']);
     });
 
     it('does not exceed the square limit', () => {
         const state: PuzzleState = {
             ...createPuzzleState(),
-            movePath: Array<CellKey>(MAX_MARKED_SQUARES).fill('0,0'),
+            moves: Array<CellKey>(MAX_MARKED_SQUARES).fill('0,0'),
         };
         expect(select(state, '7,7')).toBe(state);
     });
 
     it('infers a tower when the 3D move changes elevation', () => {
         const state = select(createPuzzleState(), '0,2');
-        expect(state.movePath).toEqual(['0,0', '0,2']);
+        expect(state.moves).toEqual(['0,0', '0,2']);
         expect(towerCellsFor(state)).toEqual(new Set(['0,2']));
-    });
-
-    it('rejects an inferred tower when its region already has another tower', () => {
-        const state: PuzzleState = {
-            ...createPuzzleState(),
-            towerBySection: new Map([[11, '0,1']]),
-        };
-        expect(select(state, '0,2')).toBe(state);
-    });
-
-    it('rejects a non-tower destination already marked as a tower', () => {
-        const state: PuzzleState = {
-            movePath: ['0,0'],
-            mode: 'moves',
-            towerBySection: new Map([[10, '0,0'], [11, '0,2']]),
-        };
-        expect(select(state, '0,2')).toBe(state);
     });
 
     it('rejects coordinates outside the puzzle', () => {
@@ -107,8 +164,8 @@ describe('puzzle state', () => {
         let state = select(createPuzzleState(), '0,2');
         state = select(state, '1,4');
         expect(towerCellsFor(state)).toEqual(new Set(['0,2', '1,4']));
-        state = toggleMultiReset(state);
-        state = select(state, '1,4');
+        state = toggleErase(state);
+        state = select({...state, selectedMove: 2}, '1,4');
         expect(towerCellsFor(state)).toEqual(new Set(['0,2']));
     });
 
@@ -116,19 +173,34 @@ describe('puzzle state', () => {
         let state = select(createPuzzleState(), '0,0');
         state = select(state, '2,1');
         state = select(state, '4,2');
+        state = toggleErase(state);
         state = select(state, '4,2');
         expect(towerCellsFor(state)).toEqual(new Set(['0,0', '2,1']));
     });
 
-    it('rejects a new move with invalid tower division or a mismatched clue', () => {
+    it('allows a detached move that cannot connect to its existing successor', () => {
+        let state = createPuzzleState();
+        state = puzzleReducer(state, {type: 'selectMove', move: 6});
+        state = select(state, '7,7');
+        state = select(state, '5,6');
+        state = select(state, '3,7');
+        expect(state.moves.slice(6)).toEqual(['7,7', '5,6', '3,7']);
+
+        state = puzzleReducer(state, {type: 'selectMove', move: 5});
+        expect(select(state, '0,2').moves[5]).toBe('0,2');
+    });
+
+    it('stores a new move with invalid tower division or a mismatched clue', () => {
         const state: PuzzleState = {
-            movePath: ['0,0', '0,2', '1,4'],
+            moves: ['0,0', '0,2', '1,4'],
+            displayScores: [BigInt(0), BigInt(0), BigInt(2)],
+            selectedMove: 3,
             mode: 'moves',
             towerBySection: new Map([[11, '0,2'], [12, '1,4']]),
         };
-        expect(select(state, '1,6')).toBe(state);
+        expect(select(state, '1,6').moves[3]).toBe('1,6');
 
         const cluePath = select(select(createPuzzleState(), '2,1'), '4,2');
-        expect(select(cluePath, '5,2')).toBe(cluePath);
+        expect(select(cluePath, '5,2').moves[3]).toBe('5,2');
     });
 });

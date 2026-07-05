@@ -9,71 +9,87 @@ import {PUZZLE_CELLS} from './puzzleDefinition';
 import type {CellKey} from './types';
 
 export type StoredPuzzleState = {
-    version: 1;
-    movePath: readonly CellKey[];
+    version: 2;
+    moves: readonly (CellKey | null)[];
     startingCellIsTower: boolean;
 };
 
-type LegacyStoredPuzzleState = {
-    movePath: readonly CellKey[];
-    towerCells: readonly CellKey[];
+type DecodedPuzzleState = {
+    moves: readonly (CellKey | null)[];
+    startingCellIsTower: boolean;
+    legacyTowerCells?: readonly CellKey[];
 };
 
 const validCells = new Set(PUZZLE_CELLS.map(cell => cell.key));
 
 export function storePuzzleState(state: PuzzleState): StoredPuzzleState {
     return {
-        version: 1,
-        movePath: [...state.movePath],
+        version: 2,
+        moves: [...state.moves],
         startingCellIsTower: towerCellsFor(state).has(STARTING_CELL),
     };
 }
 
 export function restorePuzzleState(value: unknown): PuzzleState | null {
-    if (isStoredPuzzleState(value)) {
-        return replayPuzzleState(value.movePath, value.startingCellIsTower);
-    }
-
-    if (!isLegacyStoredPuzzleState(value)) return null;
-    const restored = replayPuzzleState(value.movePath, value.towerCells.includes(STARTING_CELL));
+    const decoded = decodePuzzleState(value);
+    if (!decoded) return null;
+    const restored = replayPuzzleState(decoded.moves, decoded.startingCellIsTower);
     if (!restored) return null;
-
+    if (!decoded.legacyTowerCells) return restored;
     const restoredTowers = towerCellsFor(restored);
-    const hasSameTowers = restoredTowers.size === value.towerCells.length
-        && value.towerCells.every(key => restoredTowers.has(key));
+    const hasSameTowers = restoredTowers.size === decoded.legacyTowerCells.length
+        && decoded.legacyTowerCells.every(key => restoredTowers.has(key));
     return hasSameTowers ? restored : null;
 }
 
-function replayPuzzleState(movePath: readonly CellKey[], startingCellIsTower: boolean) {
+function replayPuzzleState(moves: readonly (CellKey | null)[], startingCellIsTower: boolean) {
     let restored = createPuzzleState();
     if (startingCellIsTower) {
         restored = puzzleReducer(restored, {type: 'selectCell', key: STARTING_CELL});
     }
-    for (const key of movePath.slice(1)) {
+    for (let move = 1; move < moves.length; move += 1) {
+        const key = moves[move];
+        if (!key) continue;
+        restored = puzzleReducer(restored, {type: 'selectMove', move});
         restored = puzzleReducer(restored, {type: 'selectCell', key});
     }
 
-    return restored.movePath.length === movePath.length ? restored : null;
+    const sameMoves = moves.every((key, move) => restored.moves[move] === key);
+    return sameMoves ? restored : null;
 }
 
-function isStoredPuzzleState(value: unknown): value is StoredPuzzleState {
-    if (!value || typeof value !== 'object') return false;
-    const candidate = value as Partial<StoredPuzzleState>;
-    return candidate.version === 1
-        && Array.isArray(candidate.movePath)
-        && candidate.movePath[0] === STARTING_CELL
-        && candidate.movePath.every(isCellKey)
-        && typeof candidate.startingCellIsTower === 'boolean';
+function decodePuzzleState(value: unknown): DecodedPuzzleState | null {
+    if (!value || typeof value !== 'object') return null;
+    const candidate = value as Record<string, unknown>;
+
+    if (candidate.version === 2) {
+        return isMoveSequence(candidate.moves, true) && typeof candidate.startingCellIsTower === 'boolean'
+            ? {moves: candidate.moves, startingCellIsTower: candidate.startingCellIsTower}
+            : null;
+    }
+    if (candidate.version === 1) {
+        return isMoveSequence(candidate.movePath, false) && typeof candidate.startingCellIsTower === 'boolean'
+            ? {moves: candidate.movePath, startingCellIsTower: candidate.startingCellIsTower}
+            : null;
+    }
+    if (candidate.version !== undefined) return null;
+
+    if (!isMoveSequence(candidate.movePath, false) || !isCellSequence(candidate.towerCells)) return null;
+    return {
+        moves: candidate.movePath,
+        startingCellIsTower: candidate.towerCells.includes(STARTING_CELL),
+        legacyTowerCells: candidate.towerCells,
+    };
 }
 
-function isLegacyStoredPuzzleState(value: unknown): value is LegacyStoredPuzzleState {
-    if (!value || typeof value !== 'object') return false;
-    const candidate = value as Partial<LegacyStoredPuzzleState>;
-    return Array.isArray(candidate.movePath)
-        && candidate.movePath[0] === STARTING_CELL
-        && candidate.movePath.every(isCellKey)
-        && Array.isArray(candidate.towerCells)
-        && candidate.towerCells.every(isCellKey);
+function isMoveSequence(value: unknown, sparse: boolean): value is (CellKey | null)[] {
+    return Array.isArray(value)
+        && value[0] === STARTING_CELL
+        && value.every(key => isCellKey(key) || (sparse && key === null));
+}
+
+function isCellSequence(value: unknown): value is CellKey[] {
+    return Array.isArray(value) && value.every(isCellKey);
 }
 
 function isCellKey(key: unknown): key is CellKey {

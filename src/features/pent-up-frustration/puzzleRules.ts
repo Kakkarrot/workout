@@ -26,7 +26,7 @@ export function evaluatePath(
             return {scores, validLength: move};
         }
 
-        const score = scoreMove(scores[move - 1], move, towerCells.has(from), towerCells.has(to));
+        const score = scoreAfterMove(scores[move - 1], move, towerCells.has(from), towerCells.has(to));
         if (score === null) return {scores, validLength: move};
 
         const requiredScore = clues[to];
@@ -38,7 +38,7 @@ export function evaluatePath(
     return {scores, validLength: path.length};
 }
 
-function scoreMove(score: bigint, move: number, fromTower: boolean, toTower: boolean) {
+export function scoreAfterMove(score: bigint, move: number, fromTower: boolean, toTower: boolean) {
     const multiplier = BigInt(move);
 
     if (fromTower === toTower) return score + multiplier;

@@ -1,7 +1,9 @@
 'use client';
 
 import {FormEvent, useEffect, useState} from 'react';
+import {BoundedCounter} from '../../components/BoundedCounter';
 import {
+    MAX_SCORE_STEPS,
     generateScoresForward,
     type ScoreSequence,
     type ScoreSequenceStart,
@@ -9,46 +11,42 @@ import {
 import styles from './ScoreSequenceGenerator.module.css';
 
 type ScoreSequenceGeneratorProps = {
-    start: ScoreSequenceStart;
+    start: ScoreSequenceStart | null;
 };
 
 export function ScoreSequenceGenerator({start}: ScoreSequenceGeneratorProps) {
-    const {score, move, height} = start;
-    const [stepsInput, setStepsInput] = useState('1');
+    const score = start?.score ?? BigInt(0);
+    const move = start?.move ?? 1;
+    const height = start?.height ?? 0;
+    const [steps, setSteps] = useState(1);
     const [results, setResults] = useState<ScoreSequence[] | null>(null);
-    const steps = Number(stepsInput);
-    const hasValidSteps = stepsInput.trim() !== ''
-        && Number.isInteger(steps)
-        && steps >= 1
-        && steps <= 12;
 
     useEffect(() => setResults(null), [score, move, height]);
 
     function generate(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!hasValidSteps) return;
+        if (!start) return;
         setResults(generateScoresForward(score, move, height, steps));
     }
 
     return (
         <section className={styles.generator} aria-labelledby="score-generator-title">
             <h2 id="score-generator-title">Generate possible scores</h2>
-            <p className={styles.startingValues}>
-                Starting at score {score.toString()}, move {move}, height {height}.
-            </p>
+            {start
+                ? <p className={styles.startingValues}>
+                    Starting at score {score.toString()}, move {move}, height {height}.
+                </p>
+                : <p className={styles.startingValues}>Selected move score unavailable.</p>}
             <form className={styles.form} onSubmit={generate}>
-                <label htmlFor="score-generator-steps">Steps</label>
-                <input
-                    id="score-generator-steps"
-                    type="number"
-                    min="1"
-                    max="12"
-                    step="1"
-                    required
-                    value={stepsInput}
-                    onChange={event => setStepsInput(event.currentTarget.value)}
+                <span>Steps</span>
+                <BoundedCounter
+                    value={steps}
+                    min={1}
+                    max={MAX_SCORE_STEPS}
+                    label="steps"
+                    onChange={setSteps}
                 />
-                <button type="submit" disabled={!hasValidSteps}>
+                <button className={styles.generateButton} type="submit" disabled={!start}>
                     Generate scores
                 </button>
             </form>

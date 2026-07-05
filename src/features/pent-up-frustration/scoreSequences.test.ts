@@ -34,5 +34,6 @@ describe('generateScoresForward', () => {
     it('rejects invalid step counts', () => {
         expect(() => generateScoresForward(BigInt(0), 1, 0, -1)).toThrow(RangeError);
         expect(() => generateScoresForward(BigInt(0), 1, 0, 1.5)).toThrow(RangeError);
+        expect(() => generateScoresForward(BigInt(0), 1, 0, 11)).toThrow(RangeError);
     });
 });

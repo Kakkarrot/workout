@@ -1,4 +1,5 @@
 export type ScoreSequence = readonly bigint[];
+export const MAX_SCORE_STEPS = 10;
 export type ScoreSequenceStart = Readonly<{
     score: bigint;
     move: number;
@@ -11,8 +12,8 @@ export function generateScoresForward(
     currentHeight: 0 | 1,
     steps: number,
 ): ScoreSequence[] {
-    if (!Number.isInteger(steps) || steps < 0) {
-        throw new RangeError('Steps must be a non-negative integer');
+    if (!Number.isInteger(steps) || steps < 0 || steps > MAX_SCORE_STEPS) {
+        throw new RangeError(`Steps must be a non-negative integer no greater than ${MAX_SCORE_STEPS}`);
     }
 
     const results: ScoreSequence[] = [];

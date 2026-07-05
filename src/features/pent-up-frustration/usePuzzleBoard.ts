@@ -2,7 +2,7 @@
 
 import {useEffect, useReducer, useState} from 'react';
 import {createPuzzleState, puzzleReducer} from './puzzleState';
-import {restorePuzzleState, storePuzzleState} from './puzzleStorage';
+import {loadPuzzleState, savePuzzleState} from './puzzleStateApi';
 import type {CellKey} from './types';
 
 export function usePuzzleBoard(puzzleId: string) {
@@ -17,14 +17,8 @@ export function usePuzzleBoard(puzzleId: string) {
 
         async function loadBoard() {
             try {
-                const response = await fetch(stateApi, {signal: controller.signal});
-                if (!response.ok) throw new Error('Could not load the saved board');
-                const savedState: unknown = await response.json();
-                if (savedState !== null) {
-                    const restoredState = restorePuzzleState(savedState);
-                    if (!restoredState) throw new Error('The saved board is invalid');
-                    dispatch({type: 'load', state: restoredState});
-                }
+                const restoredState = await loadPuzzleState(stateApi, controller.signal);
+                if (restoredState) dispatch({type: 'load', state: restoredState});
                 setStatus('');
             } catch (error) {
                 if (!controller.signal.aborted) setStatus(errorMessage(error, 'Could not load the saved board'));
@@ -41,12 +35,7 @@ export function usePuzzleBoard(puzzleId: string) {
         setIsSaving(true);
         setStatus('Saving…');
         try {
-            const response = await fetch(stateApi, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(storePuzzleState(state)),
-            });
-            if (!response.ok) throw new Error('Could not save the board');
+            await savePuzzleState(stateApi, state);
             setStatus('Board saved.');
         } catch (error) {
             setStatus(errorMessage(error, 'Could not save the board'));
@@ -61,7 +50,10 @@ export function usePuzzleBoard(puzzleId: string) {
         isSaving,
         status,
         selectCell: (key: CellKey) => dispatch({type: 'selectCell', key}),
-        toggleMultiReset: () => dispatch({type: 'toggleMultiReset'}),
+        selectMove: (move: number) => {
+            if (Number.isFinite(move)) dispatch({type: 'selectMove', move});
+        },
+        toggleErase: () => dispatch({type: 'toggleErase'}),
         save,
     };
 }

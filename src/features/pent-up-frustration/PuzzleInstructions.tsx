@@ -20,8 +20,8 @@ export function PuzzleInstructions() {
                     up, or divide by N when moving down. Division must produce a whole number.
                 </li>
                 <li>
-                    Select each destination in order. The board infers tower locations and rejects moves
-                    that break a movement, tower, score, or printed-clue rule.
+                    Choose a move number and then select its destination. You may enter disconnected parts
+                    of the path; they are fully verified when the gaps connecting them are filled.
                 </li>
             </ul>
             <p>
@@ -29,9 +29,9 @@ export function PuzzleInstructions() {
                 its orthogonally adjacent visited squares; the puzzle answer is the sum of those results.
             </p>
             <p className={styles.controls}>
-                Before moving, select the starting square to toggle a tower there. Select the latest move
-                to undo it, or use <strong>Multi reset</strong> and select an earlier move to erase it and
-                everything after it.
+                Before moving, select the starting square to toggle a tower there. Use <strong>−</strong> and{' '}
+                <strong>+</strong> to change the move number. Selecting a populated square changes the counter
+                to that move. Use <strong>Erase</strong> to remove only the selected square’s move.
             </p>
         </section>
     );

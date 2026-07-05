@@ -147,6 +147,7 @@ a { color: var(--app-foreground); }
 .puzzle-cell:disabled:hover { filter: none; }
 .puzzle-cell:disabled:active { transform: none; }
 .puzzle-cell--selected { z-index: 1; outline: 3px solid #1558b0; outline-offset: -3px; }
+.puzzle-cell--invalid { z-index: 2; outline: 3px solid #c62828; outline-offset: -3px; }
 .puzzle-cell--tower { box-shadow: inset 0 0 0 4px var(--puzzle-surface); }
 
 .puzzle-cell__move {
@@ -177,6 +178,29 @@ a { color: var(--app-foreground); }
     justify-content: center;
     gap: 0.6rem;
     margin-top: 1rem;
+}
+
+.bounded-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.bounded-counter__button {
+    min-width: 2.5rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 1.1rem;
+}
+
+.bounded-counter__value {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
 .puzzle-mode {

@@ -1,47 +1,53 @@
 'use client';
 
 import {useMemo} from 'react';
+import {BoundedCounter} from '../../components/BoundedCounter';
 import {PuzzleBoard} from './PuzzleBoard';
 import {PuzzleInstructions} from './PuzzleInstructions';
 import {PUZZLE_ID} from './puzzleDefinition';
-import {evaluatePath} from './puzzleRules';
+import {evaluateProgress} from './puzzleProgress';
 import {ScoreSequenceGenerator} from './ScoreSequenceGenerator';
-import {towerCellsFor} from './puzzleState';
+import {MAX_MOVE, STARTING_CELL, scoreSequenceStartFor, towerCellsFor} from './puzzleState';
 import {usePuzzleBoard} from './usePuzzleBoard';
 
 export function PuzzleGrid() {
-    const {state, isLoading, isSaving, status, selectCell, toggleMultiReset, save} = usePuzzleBoard(PUZZLE_ID);
+    const {state, isLoading, isSaving, status, selectCell, selectMove, toggleErase, save} = usePuzzleBoard(PUZZLE_ID);
     const towerCells = useMemo(() => towerCellsFor(state), [state]);
-    const {scores} = evaluatePath(state.movePath, towerCells);
-    const multiResetMode = state.mode === 'multiReset';
-    const lastCell = state.movePath[state.movePath.length - 1];
-    const scoreSequenceStart = {
-        score: scores[scores.length - 1] ?? BigInt(0),
-        move: state.movePath.length,
-        height: towerCells.has(lastCell) ? 1 : 0,
-    } as const;
+    const progress = evaluateProgress(state.moves, towerCells.has(STARTING_CELL));
+    const eraseMode = state.mode === 'erase';
+    const scoreSequenceStart = scoreSequenceStartFor(state);
 
     return (
         <>
             <section className="puzzle-workspace" aria-label="Interactive puzzle grid">
                 {!isLoading && (
                     <PuzzleBoard
-                        movePath={state.movePath}
-                        scores={scores.map(score => score.toString())}
+                        moves={state.moves}
+                        selectedMove={state.selectedMove}
+                        scores={state.displayScores.map(score => score?.toString())}
                         towerCells={towerCells}
+                        invalidMoves={progress.invalidMoves}
                         disabled={isSaving}
                         onSelectCell={selectCell}
                     />
                 )}
                 <div className="puzzle-modes">
-                    <button
-                        className={`puzzle-mode${multiResetMode ? ' puzzle-mode--active' : ''}`}
-                        type="button"
-                        aria-pressed={multiResetMode}
+                    <BoundedCounter
+                        value={state.selectedMove}
+                        min={1}
+                        max={MAX_MOVE}
+                        label="move"
                         disabled={isLoading || isSaving}
-                        onClick={toggleMultiReset}
+                        onChange={selectMove}
+                    />
+                    <button
+                        className={`puzzle-mode${eraseMode ? ' puzzle-mode--active' : ''}`}
+                        type="button"
+                        aria-pressed={eraseMode}
+                        disabled={isLoading || isSaving}
+                        onClick={toggleErase}
                     >
-                        Multi reset
+                        Erase
                     </button>
                     <button
                         className="puzzle-mode"
@@ -54,9 +60,9 @@ export function PuzzleGrid() {
                 </div>
                 <p className="puzzle-status" aria-live="polite">{status}</p>
                 <p className="puzzle-help">
-                    {multiResetMode
-                        ? 'Select a populated square to remove it and every move after it.'
-                        : 'Select squares in move order. Select the latest move to undo it.'}
+                    {eraseMode
+                        ? 'Select a populated square to erase that move.'
+                        : 'Choose a move number, then select its square. Connected moves are verified immediately.'}
                 </p>
             </section>
             {!isLoading && (

@@ -2,15 +2,17 @@ import {GRID_SIZE, PUZZLE_CELLS} from './puzzleDefinition';
 import type {CellKey} from './types';
 
 type PuzzleBoardProps = {
-    movePath: readonly CellKey[];
-    scores: readonly string[];
+    moves: readonly (CellKey | null)[];
+    selectedMove: number;
+    scores: readonly (string | undefined)[];
     towerCells: ReadonlySet<CellKey>;
+    invalidMoves: ReadonlySet<number>;
     disabled: boolean;
     onSelectCell: (key: CellKey) => void;
 };
 
-export function PuzzleBoard({movePath, scores, towerCells, disabled, onSelectCell}: PuzzleBoardProps) {
-    const moveByCell = new Map(movePath.map((key, move) => [key, move]));
+export function PuzzleBoard({moves, selectedMove, scores, towerCells, invalidMoves, disabled, onSelectCell}: PuzzleBoardProps) {
+    const moveByCell = new Map(moves.flatMap((key, move) => key ? [[key, move] as const] : []));
 
     return (
         <div className="coordinate-grid">
@@ -21,13 +23,15 @@ export function PuzzleBoard({movePath, scores, towerCells, disabled, onSelectCel
                 {PUZZLE_CELLS.map(cell => {
                     const move = moveByCell.get(cell.key);
                     const score = move === undefined ? undefined : scores[move];
+                    const displayedNumber = score ?? cell.constant ?? move?.toString();
 
                     return (
                         <button
                             className={cellClassName(
                                 Boolean(cell.constant),
-                                move === movePath.length - 1,
+                                move === selectedMove,
                                 towerCells.has(cell.key),
+                                move !== undefined && invalidMoves.has(move),
                             )}
                             key={cell.key}
                             type="button"
@@ -45,8 +49,9 @@ export function PuzzleBoard({movePath, scores, towerCells, disabled, onSelectCel
                             onClick={() => onSelectCell(cell.key)}
                             style={{backgroundColor: cell.sectionColor}}
                         >
-                            <CellNumber text={score ?? cell.constant}/>
-                            {move !== undefined && <span className="puzzle-cell__move">{move}</span>}
+                            <CellNumber text={displayedNumber}/>
+                            {move !== undefined && (score !== undefined || cell.constant !== undefined)
+                                && <span className="puzzle-cell__move">{move}</span>}
                         </button>
                     );
                 })}
@@ -63,12 +68,13 @@ function axisValues() {
     return Array.from({length: GRID_SIZE}, (_, index) => index);
 }
 
-function cellClassName(isConstant: boolean, isCurrentMove: boolean, hasTower: boolean) {
+function cellClassName(isConstant: boolean, isCurrentMove: boolean, hasTower: boolean, isInvalid: boolean) {
     return [
         'puzzle-cell',
         isConstant && 'puzzle-cell--prefilled',
         isCurrentMove && 'puzzle-cell--selected',
         hasTower && 'puzzle-cell--tower',
+        isInvalid && 'puzzle-cell--invalid',
     ].filter(Boolean).join(' ');
 }
 
