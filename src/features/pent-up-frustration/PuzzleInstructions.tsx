@@ -20,8 +20,8 @@ export function PuzzleInstructions() {
                     up, or divide by N when moving down. Division must produce a whole number.
                 </li>
                 <li>
-                    Choose a move number and then select its destination. You may enter disconnected parts
-                    of the path; they are fully verified when the gaps connecting them are filled.
+                    Select a populated square to make that move active, then select an empty square to play
+                    the following move. Disconnected saved paths are verified as their gaps are filled.
                 </li>
             </ul>
             <p>

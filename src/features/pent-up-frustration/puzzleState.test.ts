@@ -36,12 +36,6 @@ describe('puzzle state', () => {
         expect(puzzleReducer(createPuzzleState(), {type: 'load', state: loaded})).toBe(loaded);
     });
 
-    it('clamps the selected move to the playable range', () => {
-        const state = createPuzzleState();
-        expect(puzzleReducer(state, {type: 'selectMove', move: -1}).selectedMove).toBe(0);
-        expect(puzzleReducer(state, {type: 'selectMove', move: 100}).selectedMove).toBe(64);
-    });
-
     it('returns only the connected move prefix', () => {
         const state = {...createPuzzleState(), moves: ['0,0', '2,1', null, '7,7'] as const};
         expect(contiguousMovePath(state)).toEqual(['0,0', '2,1']);
@@ -94,7 +88,7 @@ describe('puzzle state', () => {
         expect(scoreSequenceStartFor(state)).toEqual({score: BigInt(3), move: 3, height: 0});
         const startingTower = select(createPuzzleState(), '0,0');
         expect(scoreSequenceStartFor(startingTower)).toEqual({score: BigInt(0), move: 1, height: 1});
-        const detached = puzzleReducer(createPuzzleState(), {type: 'selectMove', move: 6});
+        const detached = {...createPuzzleState(), selectedMove: 6};
         expect(scoreSequenceStartFor(detached)).toBeNull();
         let selectedTower = select(createPuzzleState(), '0,2');
         selectedTower = select(selectedTower, '0,2');
@@ -141,8 +135,7 @@ describe('puzzle state', () => {
 
     it('places the following move from the active populated move', () => {
         const state = select(createPuzzleState(), '2,1');
-        const selected = puzzleReducer(state, {type: 'selectMove', move: 1});
-        const placed = puzzleReducer(selected, {type: 'selectCell', key: '4,2'});
+        const placed = puzzleReducer(state, {type: 'selectCell', key: '4,2'});
         expect(placed.moves).toEqual(['0,0', '2,1', '4,2']);
         expect(placed.selectedMove).toBe(2);
     });

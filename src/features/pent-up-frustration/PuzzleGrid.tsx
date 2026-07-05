@@ -54,7 +54,7 @@ export function PuzzleGrid() {
                 <p className="puzzle-help">
                     {eraseMode
                         ? 'Select a populated square to erase that move.'
-                        : 'Choose a move number, then select its square. Connected moves are verified immediately.'}
+                        : 'Select a populated square to make it active, or an empty square to play the following move.'}
                 </p>
             </section>
             {!isLoading && (

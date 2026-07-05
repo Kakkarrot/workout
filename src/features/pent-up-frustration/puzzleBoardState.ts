@@ -20,6 +20,19 @@ export function createPuzzleBoardState(): PuzzleBoardState {
     return {moves: [STARTING_CELL], displayScores: [BigInt(0)], towerBySection: new Map()};
 }
 
+export function hydratePuzzleBoardState(
+    moves: readonly (CellKey | null)[],
+    startingCellIsTower: boolean,
+) {
+    const populated = moves.filter((key): key is CellKey => Boolean(key));
+    if (new Set(populated).size !== populated.length) return null;
+    const initial = createPuzzleBoardState();
+    const towerBySection = startingCellIsTower
+        ? new Map([[startingSection, STARTING_CELL]])
+        : initial.towerBySection;
+    return rebuildBoard({...initial, towerBySection}, moves);
+}
+
 export function placeFollowingMove(board: PuzzleBoardState, activeMove: number, key: CellKey) {
     const moveToPlace = activeMove + 1;
     if (!sectionByCell.has(key)

@@ -1,5 +1,4 @@
 import {
-    MAX_MOVE,
     STARTING_CELL,
     createPuzzleBoardState,
     eraseMove,
@@ -24,7 +23,6 @@ export type PuzzleState = PuzzleBoardState & {
 
 export type PuzzleAction =
     | {type: 'selectCell'; key: CellKey}
-    | {type: 'selectMove'; move: number}
     | {type: 'toggleErase'}
     | {type: 'load'; state: PuzzleState};
 
@@ -36,9 +34,6 @@ export function puzzleReducer(state: PuzzleState, action: PuzzleAction): PuzzleS
     if (action.type === 'load') return action.state;
     if (action.type === 'toggleErase') {
         return {...state, mode: state.mode === 'erase' ? 'moves' : 'erase'};
-    }
-    if (action.type === 'selectMove') {
-        return {...state, selectedMove: Math.max(0, Math.min(MAX_MOVE, action.move))};
     }
     return selectCell(state, action.key);
 }

@@ -7,6 +7,7 @@ import {
     scoreSequenceStartFor,
     toggleStartingTower,
     towerCellsFor,
+    hydratePuzzleBoardState,
 } from './puzzleBoardState';
 
 describe('puzzle board state', () => {
@@ -43,5 +44,12 @@ describe('puzzle board state', () => {
         const moveOne = placeFollowingMove(createPuzzleBoardState(), 0, '2,1')!;
         expect(scoreSequenceStartFor(moveOne, 1)).toEqual({score: BigInt(1), move: 2, height: 0});
         expect(scoreSequenceStartFor(moveOne, 2)).toBeNull();
+    });
+
+    it('hydrates sparse persisted boards without interaction actions', () => {
+        const hydrated = hydratePuzzleBoardState(['0,0', null, '4,2'], true);
+        expect(hydrated?.moves).toEqual(['0,0', null, '4,2']);
+        expect(towerCellsFor(hydrated!)).toContain('0,0');
+        expect(hydratePuzzleBoardState(['0,0', '2,1', '2,1'], false)).toBeNull();
     });
 });

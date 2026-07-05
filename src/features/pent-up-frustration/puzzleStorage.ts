@@ -1,10 +1,5 @@
-import {
-    STARTING_CELL,
-    createPuzzleState,
-    puzzleReducer,
-    towerCellsFor,
-    type PuzzleState,
-} from './puzzleState';
+import {STARTING_CELL, towerCellsFor, type PuzzleState} from './puzzleState';
+import {hydratePuzzleBoardState} from './puzzleBoardState';
 import {PUZZLE_CELLS} from './puzzleDefinition';
 import type {CellKey} from './types';
 
@@ -43,19 +38,10 @@ export function restorePuzzleState(value: unknown): PuzzleState | null {
 }
 
 function replayPuzzleState(moves: readonly (CellKey | null)[], startingCellIsTower: boolean) {
-    let restored = createPuzzleState();
-    if (startingCellIsTower) {
-        restored = puzzleReducer(restored, {type: 'selectCell', key: STARTING_CELL});
-    }
-    for (let move = 1; move < moves.length; move += 1) {
-        const key = moves[move];
-        if (!key) continue;
-        restored = puzzleReducer(restored, {type: 'selectMove', move: move - 1});
-        restored = puzzleReducer(restored, {type: 'selectCell', key});
-    }
-
-    const sameMoves = moves.every((key, move) => restored.moves[move] === key);
-    return sameMoves ? restored : null;
+    const board = hydratePuzzleBoardState(moves, startingCellIsTower);
+    if (!board) return null;
+    const selectedMove = Math.max(0, board.moves.findLastIndex(Boolean));
+    return {...board, selectedMove, mode: 'moves' as const};
 }
 
 function decodePuzzleState(value: unknown): DecodedPuzzleState | null {

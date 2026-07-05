@@ -50,9 +50,6 @@ export function usePuzzleBoard(puzzleId: string) {
         isSaving,
         status,
         selectCell: (key: CellKey) => dispatch({type: 'selectCell', key}),
-        selectMove: (move: number) => {
-            if (Number.isFinite(move)) dispatch({type: 'selectMove', move});
-        },
         toggleErase: () => dispatch({type: 'toggleErase'}),
         save,
     };
