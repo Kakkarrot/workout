@@ -1,17 +1,16 @@
 'use client';
 
 import {useMemo} from 'react';
-import {BoundedCounter} from '../../components/BoundedCounter';
 import {PuzzleBoard} from './PuzzleBoard';
 import {PuzzleInstructions} from './PuzzleInstructions';
 import {PUZZLE_ID} from './puzzleDefinition';
 import {evaluateProgress} from './puzzleProgress';
 import {ScoreSequenceGenerator} from './ScoreSequenceGenerator';
-import {MAX_MOVE, STARTING_CELL, scoreSequenceStartFor, towerCellsFor} from './puzzleState';
+import {STARTING_CELL, scoreSequenceStartFor, towerCellsFor} from './puzzleState';
 import {usePuzzleBoard} from './usePuzzleBoard';
 
 export function PuzzleGrid() {
-    const {state, isLoading, isSaving, status, selectCell, selectMove, toggleErase, save} = usePuzzleBoard(PUZZLE_ID);
+    const {state, isLoading, isSaving, status, selectCell, toggleErase, save} = usePuzzleBoard(PUZZLE_ID);
     const towerCells = useMemo(() => towerCellsFor(state), [state]);
     const progress = evaluateProgress(state.moves, towerCells.has(STARTING_CELL));
     const eraseMode = state.mode === 'erase';
@@ -32,14 +31,7 @@ export function PuzzleGrid() {
                     />
                 )}
                 <div className="puzzle-modes">
-                    <BoundedCounter
-                        value={state.selectedMove}
-                        min={1}
-                        max={MAX_MOVE}
-                        label="move"
-                        disabled={isLoading || isSaving}
-                        onChange={selectMove}
-                    />
+                    <span className="active-move" aria-live="polite">Move: {state.selectedMove}</span>
                     <button
                         className={`puzzle-mode${eraseMode ? ' puzzle-mode--active' : ''}`}
                         type="button"

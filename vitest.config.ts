@@ -7,6 +7,7 @@ export default defineConfig({
             include: [
                 'src/features/pent-up-frustration/puzzleRules.ts',
                 'src/features/pent-up-frustration/puzzleState.ts',
+                'src/features/pent-up-frustration/puzzleBoardState.ts',
                 'src/features/pent-up-frustration/puzzleProgress.ts',
                 'src/features/pent-up-frustration/puzzleDefinition.ts',
                 'src/features/pent-up-frustration/sectionColoring.ts',

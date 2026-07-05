@@ -203,6 +203,14 @@ a { color: var(--app-foreground); }
     font-size: 1.1rem;
 }
 
+.active-move {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
 .puzzle-mode {
     min-height: 2.75rem;
     padding: 0 1rem;

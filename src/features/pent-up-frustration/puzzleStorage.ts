@@ -50,7 +50,7 @@ function replayPuzzleState(moves: readonly (CellKey | null)[], startingCellIsTow
     for (let move = 1; move < moves.length; move += 1) {
         const key = moves[move];
         if (!key) continue;
-        restored = puzzleReducer(restored, {type: 'selectMove', move});
+        restored = puzzleReducer(restored, {type: 'selectMove', move: move - 1});
         restored = puzzleReducer(restored, {type: 'selectCell', key});
     }
 

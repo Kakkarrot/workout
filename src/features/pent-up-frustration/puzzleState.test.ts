@@ -24,7 +24,7 @@ describe('puzzle state', () => {
         expect(state).toEqual({
             moves: ['0,0'],
             displayScores: [BigInt(0)],
-            selectedMove: 1,
+            selectedMove: 0,
             mode: 'moves',
             towerBySection: new Map(),
         });
@@ -38,7 +38,7 @@ describe('puzzle state', () => {
 
     it('clamps the selected move to the playable range', () => {
         const state = createPuzzleState();
-        expect(puzzleReducer(state, {type: 'selectMove', move: -1}).selectedMove).toBe(1);
+        expect(puzzleReducer(state, {type: 'selectMove', move: -1}).selectedMove).toBe(0);
         expect(puzzleReducer(state, {type: 'selectMove', move: 100}).selectedMove).toBe(64);
     });
 
@@ -85,7 +85,7 @@ describe('puzzle state', () => {
 
         expect(scoreSequenceStartFor(state)).toEqual({score: BigInt(3), move: 3, height: 0});
         const startingTower = select(createPuzzleState(), '0,0');
-        expect(scoreSequenceStartFor(startingTower)).toBeNull();
+        expect(scoreSequenceStartFor(startingTower)).toEqual({score: BigInt(0), move: 1, height: 1});
         const detached = puzzleReducer(createPuzzleState(), {type: 'selectMove', move: 6});
         expect(scoreSequenceStartFor(detached)).toBeNull();
         let selectedTower = select(createPuzzleState(), '0,2');
@@ -122,22 +122,25 @@ describe('puzzle state', () => {
         expect(towerCellsFor(state)).toEqual(new Set(['1,4']));
     });
 
-    it('does not overwrite a populated move slot', () => {
+    it('places the following move from the active populated move', () => {
         const state = select(createPuzzleState(), '2,1');
         const selected = puzzleReducer(state, {type: 'selectMove', move: 1});
-        expect(select(selected, '4,2')).toBe(selected);
+        const placed = puzzleReducer(selected, {type: 'selectCell', key: '4,2'});
+        expect(placed.moves).toEqual(['0,0', '2,1', '4,2']);
+        expect(placed.selectedMove).toBe(2);
     });
 
-    it('wraps auto-advance to the first empty move after move 64', () => {
+    it('ignores placement at an occupied move 64', () => {
         const moves = Array<CellKey | null>(65).fill(null);
         moves[0] = '0,0';
         moves[2] = '2,1';
+        moves[64] = '7,6';
         const state = {...createPuzzleState(), moves, selectedMove: 64};
-        expect(select(state, '7,7').selectedMove).toBe(1);
+        expect(puzzleReducer(state, {type: 'selectCell', key: '7,7'})).toBe(state);
     });
 
     it('keeps placement when an existing connected prefix has invalid geometry', () => {
-        const state: PuzzleState = {...createPuzzleState(), moves: ['0,0', '1,1', null], selectedMove: 3};
+        const state: PuzzleState = {...createPuzzleState(), moves: ['0,0', '1,1', null], selectedMove: 2};
         expect(select(state, '7,7').moves).toEqual(['0,0', '1,1', null, '7,7']);
     });
 
@@ -146,7 +149,7 @@ describe('puzzle state', () => {
             ...createPuzzleState(),
             moves: Array<CellKey>(MAX_MARKED_SQUARES).fill('0,0'),
         };
-        expect(select(state, '7,7')).toBe(state);
+        expect(puzzleReducer(state, {type: 'selectCell', key: '7,7'})).toBe(state);
     });
 
     it('infers a tower when the 3D move changes elevation', () => {
@@ -178,23 +181,22 @@ describe('puzzle state', () => {
         expect(towerCellsFor(state)).toEqual(new Set(['0,0', '2,1']));
     });
 
-    it('allows a detached move that cannot connect to its existing successor', () => {
-        let state = createPuzzleState();
-        state = puzzleReducer(state, {type: 'selectMove', move: 6});
-        state = select(state, '7,7');
+    it('continues a loaded detached chain from its active move', () => {
+        let state: PuzzleState = {
+            ...createPuzzleState(),
+            moves: ['0,0', null, null, null, null, null, '7,7'],
+            selectedMove: 6,
+        };
         state = select(state, '5,6');
         state = select(state, '3,7');
         expect(state.moves.slice(6)).toEqual(['7,7', '5,6', '3,7']);
-
-        state = puzzleReducer(state, {type: 'selectMove', move: 5});
-        expect(select(state, '0,2').moves[5]).toBe('0,2');
     });
 
     it('stores a new move with invalid tower division or a mismatched clue', () => {
         const state: PuzzleState = {
             moves: ['0,0', '0,2', '1,4'],
             displayScores: [BigInt(0), BigInt(0), BigInt(2)],
-            selectedMove: 3,
+            selectedMove: 2,
             mode: 'moves',
             towerBySection: new Map([[11, '0,2'], [12, '1,4']]),
         };

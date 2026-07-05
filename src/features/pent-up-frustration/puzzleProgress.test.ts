@@ -52,6 +52,16 @@ describe('puzzle progress', () => {
         expect(availableTowersFor(moves, [], new Map())).toEqual(new Map());
     });
 
+    it('evaluates multiple detached segments separated by gaps', () => {
+        const moves = ['0,0', null, '4,1', null, '6,2'] as const;
+        expect(availableTowersFor(moves, [], new Map())).toEqual(new Map());
+    });
+
+    it('rejects detached elevation candidates with invalid geometry', () => {
+        const moves = ['0,0', null, '1,1', '1,2'] as const;
+        expect(availableTowersFor(moves, [], new Map())).toEqual(new Map());
+    });
+
     it('rejects a connected path that requires two towers in one section', () => {
         const path = pathWithRepeatedTowerSection();
         expect(path).not.toBeNull();

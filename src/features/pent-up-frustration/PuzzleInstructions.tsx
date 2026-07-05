@@ -29,9 +29,9 @@ export function PuzzleInstructions() {
                 its orthogonally adjacent visited squares; the puzzle answer is the sum of those results.
             </p>
             <p className={styles.controls}>
-                Before moving, select the starting square to toggle a tower there. Use <strong>−</strong> and{' '}
-                <strong>+</strong> to change the move number. Selecting a populated square changes the counter
-                to that move. Use <strong>Erase</strong> to remove only the selected square’s move.
+                Before moving, select the starting square to toggle a tower there. Selecting a populated square
+                makes it active; selecting an empty square plays the following move. Use <strong>Erase</strong>{' '}
+                to remove only the selected square’s move.
             </p>
         </section>
     );
