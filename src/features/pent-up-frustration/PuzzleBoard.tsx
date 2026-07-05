@@ -1,13 +1,15 @@
 import {GRID_SIZE, PUZZLE_CELLS} from './puzzleDefinition';
-import type {CellKey, PuzzleEntries} from './types';
+import type {CellKey} from './types';
 
 type PuzzleBoardProps = {
-    entries: PuzzleEntries;
-    selectedCell: CellKey | null;
+    movePath: readonly CellKey[];
+    towerCells: ReadonlySet<CellKey>;
     onSelectCell: (key: CellKey) => void;
 };
 
-export function PuzzleBoard({entries, selectedCell, onSelectCell}: PuzzleBoardProps) {
+export function PuzzleBoard({movePath, towerCells, onSelectCell}: PuzzleBoardProps) {
+    const moveByCell = new Map(movePath.map((key, move) => [key, move]));
+
     return (
         <div className="coordinate-grid">
             <div className="y-coordinates" aria-hidden="true">
@@ -15,21 +17,31 @@ export function PuzzleBoard({entries, selectedCell, onSelectCell}: PuzzleBoardPr
             </div>
             <div className="puzzle-grid" role="grid" aria-label={`${GRID_SIZE} by ${GRID_SIZE} puzzle grid`}>
                 {PUZZLE_CELLS.map(cell => {
-                    const entry = entries[cell.key];
-                    const displayText = cell.constant ?? entry?.text;
+                    const move = moveByCell.get(cell.key);
 
                     return (
                         <button
-                            className={cellClassName(Boolean(cell.constant), selectedCell === cell.key, entry?.kind)}
+                            className={cellClassName(
+                                Boolean(cell.constant),
+                                move === movePath.length - 1,
+                                towerCells.has(cell.key),
+                            )}
                             key={cell.key}
                             type="button"
                             role="gridcell"
-                            aria-label={cellLabel(cell.x, cell.y, cell.section, cell.constant, entry)}
-                            disabled={cell.constant !== undefined}
+                            aria-label={cellLabel(
+                                cell.x,
+                                cell.y,
+                                cell.section,
+                                cell.constant,
+                                move,
+                                towerCells.has(cell.key),
+                            )}
                             onClick={() => onSelectCell(cell.key)}
                             style={{backgroundColor: cell.sectionColor}}
                         >
-                            <CellNumber text={displayText}/>
+                            <CellNumber text={cell.constant}/>
+                            {move !== undefined && <span className="puzzle-cell__move">{move}</span>}
                         </button>
                     );
                 })}
@@ -46,12 +58,12 @@ function axisValues() {
     return Array.from({length: GRID_SIZE}, (_, index) => index);
 }
 
-function cellClassName(isConstant: boolean, isSelected: boolean, entryKind?: 'value' | 'note') {
+function cellClassName(isConstant: boolean, isCurrentMove: boolean, hasTower: boolean) {
     return [
         'puzzle-cell',
         isConstant && 'puzzle-cell--prefilled',
-        isSelected && 'puzzle-cell--selected',
-        entryKind === 'note' && 'puzzle-cell--note',
+        isCurrentMove && 'puzzle-cell--selected',
+        hasTower && 'puzzle-cell--tower',
     ].filter(Boolean).join(' ');
 }
 
@@ -60,14 +72,13 @@ function cellLabel(
     y: number,
     section: number,
     constant?: string,
-    entry?: PuzzleEntries[CellKey],
+    move?: number,
+    hasTower = false,
 ) {
-    const content = constant !== undefined
-        ? `constant ${constant}`
-        : entry
-            ? `${entry.kind} ${entry.text}`
-            : 'empty';
-    return `Coordinate ${x}, ${y}, ${content}, section ${section}`;
+    const content = constant !== undefined ? `constant ${constant}` : 'empty';
+    const moveDescription = move === undefined ? 'not visited' : `move ${move}`;
+    const towerDescription = hasTower ? 'tower' : 'no tower';
+    return `Coordinate ${x}, ${y}, ${content}, ${moveDescription}, ${towerDescription}, section ${section}`;
 }
 
 function CellNumber({text}: {text?: string}) {

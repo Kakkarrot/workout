@@ -2,7 +2,6 @@ import {assignSectionColors} from './sectionColoring';
 import type {CellKey, Coordinate, PuzzleCell} from './types';
 
 export const GRID_SIZE = 8;
-export const MAX_ENTRY_LENGTH = 8;
 
 const SECTION_COLORS = ['#ff9999', '#99d9ff', '#a9e6a1', '#ffe58f', '#d6b4ff'] as const;
 

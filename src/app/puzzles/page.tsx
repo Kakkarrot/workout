@@ -8,7 +8,7 @@ export default function PuzzlesPage() {
             <ul className="puzzle-list">
                 <li>
                     <Link href="/puzzles/pent-up-frustration-3-knight-moves-7">
-                        ‘Pent-Up’ Frustration 3 / Knight Moves 7
+                        2026 July
                     </Link>
                 </li>
             </ul>
