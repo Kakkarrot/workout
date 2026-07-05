@@ -67,6 +67,7 @@ describe('puzzle progress', () => {
         expect(path).not.toBeNull();
         expect(evaluateProgress({
             moves: path as CellKey[],
+            displayScores: [],
             towerBySection: new Map(),
         }).invalidMoves).toContain(path!.length - 1);
     });
@@ -84,7 +85,28 @@ describe('puzzle progress', () => {
             [6, '7,1'],
         ]);
 
-        expect(evaluateProgress({moves, towerBySection: displayedTowers}).invalidMoves).toContain(23);
+        expect(evaluateProgress({moves, displayScores: [], towerBySection: displayedTowers}).invalidMoves).toContain(23);
+    });
+
+    it('rejects a score-proven tower in an occupied section', () => {
+        const moves = Array<CellKey | null>(22).fill(null);
+        moves[0] = '0,0';
+        moves[14] = '3,7';
+        moves[18] = '3,2';
+        moves[19] = '2,4';
+        moves[20] = '0,5';
+        moves[21] = '0,7';
+        const displayScores = Array<bigint | undefined>(22);
+        displayScores[18] = BigInt(88);
+        displayScores[19] = BigInt(107);
+        displayScores[20] = BigInt(127);
+        displayScores[21] = BigInt(2667);
+
+        expect(evaluateProgress({
+            moves,
+            displayScores,
+            towerBySection: new Map([[1, '3,7']]),
+        }).invalidMoves).toContain(21);
     });
 
 });

@@ -9,6 +9,11 @@ export type PathEvaluation = {
     validLength: number;
 };
 
+export type MoveState = {
+    score: bigint;
+    tower: boolean;
+};
+
 export function evaluatePath(
     path: readonly CellKey[],
     towerCells: ReadonlySet<CellKey>,
@@ -22,21 +27,31 @@ export function evaluatePath(
         const from = path[move - 1];
         const to = path[move];
 
-        const expectedElevation = destinationElevation(from, to, towerCells.has(from));
-        if (expectedElevation === null || expectedElevation !== towerCells.has(to)) {
-            return {scores, validLength: move};
-        }
-
-        const score = scoreAfterMove(scores[move - 1], move, towerCells.has(from), towerCells.has(to));
-        if (score === null) return {scores, validLength: move};
+        const next = stateAfterMove(from, to, move, {
+            score: scores[move - 1],
+            tower: towerCells.has(from),
+        });
+        if (!next || next.tower !== towerCells.has(to)) return {scores, validLength: move};
 
         const requiredScore = clues[to];
-        if (requiredScore !== undefined && score !== BigInt(requiredScore)) return {scores, validLength: move};
+        if (requiredScore !== undefined && next.score !== BigInt(requiredScore)) return {scores, validLength: move};
 
-        scores.push(score);
+        scores.push(next.score);
     }
 
     return {scores, validLength: path.length};
+}
+
+export function stateAfterMove(
+    from: CellKey,
+    to: CellKey,
+    move: number,
+    state: MoveState,
+): MoveState | null {
+    const tower = destinationElevation(from, to, state.tower);
+    if (tower === null) return null;
+    const score = scoreAfterMove(state.score, move, state.tower, tower);
+    return score === null ? null : {score, tower};
 }
 
 export function scoreAfterMove(score: bigint, move: number, fromTower: boolean, toTower: boolean) {

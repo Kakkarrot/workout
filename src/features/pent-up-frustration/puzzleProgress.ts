@@ -1,6 +1,6 @@
 import {PUZZLE_CONSTANTS} from './puzzleDefinition';
 import {sectionForCell} from './puzzleTopology';
-import {destinationElevation, evaluatePath, scoreAfterMove} from './puzzleRules';
+import {destinationElevation, evaluatePath, scoreAfterMove, stateAfterMove, type MoveState} from './puzzleRules';
 import type {CellKey} from './types';
 
 export type PuzzleProgress = {
@@ -12,10 +12,11 @@ export type PuzzleProgress = {
 
 export type PuzzleProgressInput = {
     moves: readonly (CellKey | null)[];
+    displayScores: readonly (bigint | undefined)[];
     towerBySection: ReadonlyMap<number, CellKey>;
 };
 
-export function evaluateProgress({moves, towerBySection}: PuzzleProgressInput): PuzzleProgress {
+export function evaluateProgress({moves, displayScores, towerBySection}: PuzzleProgressInput): PuzzleProgress {
     const path = connectedPath(moves);
     const startingCell = path[0];
     const startingTower = startingCell !== undefined
@@ -24,7 +25,7 @@ export function evaluateProgress({moves, towerBySection}: PuzzleProgressInput): 
     const verifiedPath = path.slice(0, towers.validLength);
     const evaluation = evaluatePath(verifiedPath, new Set(towers.towerBySection.values()));
     const invalidMoves = invalidGeometryMoves(moves);
-    invalidTowerSectionMoves(moves, towerBySection).forEach(move => invalidMoves.add(move));
+    invalidTowerSectionMoves(moves, displayScores, towerBySection).forEach(move => invalidMoves.add(move));
     if (towers.validLength < path.length) invalidMoves.add(towers.validLength);
     else if (evaluation.validLength < path.length) invalidMoves.add(evaluation.validLength);
     return {path, scores: evaluation.scores, towerBySection: towers.towerBySection, invalidMoves};
@@ -32,6 +33,7 @@ export function evaluateProgress({moves, towerBySection}: PuzzleProgressInput): 
 
 function invalidTowerSectionMoves(
     moves: readonly (CellKey | null)[],
+    scores: readonly (bigint | undefined)[],
     towerBySection: ReadonlyMap<number, CellKey>,
 ) {
     const invalidMoves = new Set<number>();
@@ -40,8 +42,20 @@ function invalidTowerSectionMoves(
     for (let move = 1; move < moves.length; move += 1) {
         const from = moves[move - 1];
         const to = moves[move];
-        if (!from || !to || !towerCells.has(from)) continue;
-        if (destinationElevation(from, to, true) !== true) continue;
+        if (!from || !to) continue;
+
+        const fromElevations = towerCells.has(from) ? [true] : [false, true];
+        const candidates = fromElevations.flatMap(fromIsTower => {
+            const fromScore = scores[move - 1];
+            const toScore = scores[move];
+            if (fromScore !== undefined && toScore !== undefined) {
+                const next = stateAfterMove(from, to, move, {score: fromScore, tower: fromIsTower});
+                return next?.score === toScore ? [next.tower] : [];
+            }
+            const tower = destinationElevation(from, to, fromIsTower);
+            return tower === null ? [] : [tower];
+        });
+        if (candidates.length === 0 || candidates.some(toIsTower => !toIsTower)) continue;
 
         const existingTower = towerBySection.get(sectionForCell(to));
         if (existingTower && existingTower !== to) invalidMoves.add(move);
@@ -71,7 +85,7 @@ export function availableScoresFor(
     return scores;
 }
 
-type ScoreCandidate = {score: bigint; tower: boolean};
+type ScoreCandidate = MoveState;
 
 function propagateScoresForward(
     moves: readonly (CellKey | null)[],
@@ -87,10 +101,8 @@ function propagateScoresForward(
         if (move > 0 && moves[move - 1] && candidates.length > 0) {
             const from = moves[move - 1] as CellKey;
             candidates = candidates.flatMap(candidate => {
-                const tower = destinationElevation(from, cell, candidate.tower);
-                if (tower === null) return [];
-                const score = scoreAfterMove(candidate.score, move, candidate.tower, tower);
-                return score === null ? [] : [{score, tower}];
+                const next = stateAfterMove(from, cell, move, candidate);
+                return next ? [next] : [];
             });
         }
         const knownScore = scores[move];
@@ -164,12 +176,14 @@ export function availableTowersFor(
 
                 const nextMove = segment[index + 1];
                 const nextCell = moves[nextMove] as CellKey;
-                const nextTower = destinationElevation(cell, nextCell, isTower);
-                if (nextTower === null) return [];
                 const fromScore = scores[move];
                 const toScore = scores[nextMove];
-                if (fromScore !== undefined && toScore !== undefined
-                    && scoreAfterMove(fromScore, nextMove, isTower, nextTower) !== toScore) return [];
+                const nextTower = destinationElevation(cell, nextCell, isTower);
+                if (nextTower === null) return [];
+                if (fromScore !== undefined && toScore !== undefined) {
+                    const next = stateAfterMove(cell, nextCell, nextMove, {score: fromScore, tower: isTower});
+                    if (next?.score !== toScore) return [];
+                }
                 heights.set(nextMove, nextTower);
             }
             return [{heights, towerBySection}];
