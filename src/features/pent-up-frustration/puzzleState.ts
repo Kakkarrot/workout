@@ -15,7 +15,8 @@ export type PuzzleState = {
 
 export type PuzzleAction =
     | {type: 'selectCell'; key: CellKey}
-    | {type: 'toggleMultiReset'};
+    | {type: 'toggleMultiReset'}
+    | {type: 'load'; state: PuzzleState};
 
 const sectionByCell = new Map(PUZZLE_CELLS.map(cell => [cell.key, cell.section]));
 const startingSection = sectionByCell.get(STARTING_CELL) as number;
@@ -25,6 +26,8 @@ export function createPuzzleState(): PuzzleState {
 }
 
 export function puzzleReducer(state: PuzzleState, action: PuzzleAction): PuzzleState {
+    if (action.type === 'load') return action.state;
+
     if (action.type === 'toggleMultiReset') {
         return {...state, mode: state.mode === 'multiReset' ? 'moves' : 'multiReset'};
     }

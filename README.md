@@ -11,4 +11,4 @@ npm run typecheck
 npm run build
 ```
 
-Puzzle state is shared across all visitors through MongoDB. Copy `.env.example` to `.env.local` and configure `MONGODB_URI` before using the puzzle state API.
+Puzzle state is shared across all visitors through Firestore. Configure the Firebase service account and database ID values in `.env.local` before using the puzzle state API.

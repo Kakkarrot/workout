@@ -5,10 +5,11 @@ type PuzzleBoardProps = {
     movePath: readonly CellKey[];
     scores: readonly string[];
     towerCells: ReadonlySet<CellKey>;
+    disabled: boolean;
     onSelectCell: (key: CellKey) => void;
 };
 
-export function PuzzleBoard({movePath, scores, towerCells, onSelectCell}: PuzzleBoardProps) {
+export function PuzzleBoard({movePath, scores, towerCells, disabled, onSelectCell}: PuzzleBoardProps) {
     const moveByCell = new Map(movePath.map((key, move) => [key, move]));
 
     return (
@@ -30,6 +31,7 @@ export function PuzzleBoard({movePath, scores, towerCells, onSelectCell}: Puzzle
                             )}
                             key={cell.key}
                             type="button"
+                            disabled={disabled}
                             role="gridcell"
                             aria-label={cellLabel(
                                 cell.x,

@@ -127,6 +127,9 @@ a { color: white; }
 
 .puzzle-cell:hover { filter: brightness(0.95); }
 .puzzle-cell:active { transform: scale(0.94); }
+.puzzle-cell:disabled { cursor: wait; }
+.puzzle-cell:disabled:hover { filter: none; }
+.puzzle-cell:disabled:active { transform: none; }
 .puzzle-cell--selected { z-index: 1; outline: 3px solid #1558b0; outline-offset: -3px; }
 .puzzle-cell--tower { box-shadow: inset 0 0 0 4px white; }
 
@@ -175,6 +178,18 @@ a { color: white; }
     border-color: #1558b0;
     background: #1558b0;
     color: white;
+}
+
+.puzzle-mode:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.puzzle-status {
+    min-height: 1.5rem;
+    margin: 0.5rem 0 0;
+    color: #59616c;
+    text-align: center;
 }
 
 @media (max-width: 36rem) {
