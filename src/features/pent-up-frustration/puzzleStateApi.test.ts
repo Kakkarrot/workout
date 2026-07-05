@@ -9,9 +9,11 @@ function response(ok: boolean, body: unknown = null) {
 describe('puzzle state API client', () => {
     it('loads and restores saved state', async () => {
         const fetcher = vi.fn(async () => response(true, {
-            version: 2,
-            moves: ['0,0', '2,1'],
-            startingCellIsTower: false,
+            version: 3,
+            populatedCells: [
+                {cell: '0,0', move: 0, value: '0', isTower: false},
+                {cell: '2,1', move: 1, value: '1', isTower: false},
+            ],
         })) as unknown as typeof fetch;
         const controller = new AbortController();
 
@@ -38,7 +40,9 @@ describe('puzzle state API client', () => {
         expect(fetcher).toHaveBeenCalledWith('/state', {
             method: 'PUT',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({version: 2, moves: ['0,0'], startingCellIsTower: false}),
+            body: JSON.stringify({version: 3, populatedCells: [
+                {cell: '0,0', move: 0, value: '0', isTower: false},
+            ]}),
         });
     });
 

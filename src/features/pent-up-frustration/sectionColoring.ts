@@ -1,3 +1,4 @@
+import {cellKey, coordinatesFor} from './cellCoordinates';
 import type {CellKey, Coordinate} from './types';
 
 export function assignSectionColors(
@@ -10,13 +11,13 @@ export function assignSectionColors(
 
     for (const [section, coordinates] of Object.entries(sections)) {
         for (const coordinate of coordinates) {
-            sectionByCell.set(toCellKey(coordinate), Number(section));
+            sectionByCell.set(cellKey(coordinate), Number(section));
         }
     }
 
     for (const [key, section] of sectionByCell) {
-        const [x, y] = key.split(',').map(Number);
-        for (const neighborKey of [`${x + 1},${y}`, `${x},${y + 1}`] as CellKey[]) {
+        const [x, y] = coordinatesFor(key);
+        for (const neighborKey of [cellKey([x + 1, y]), cellKey([x, y + 1])]) {
             const neighbor = sectionByCell.get(neighborKey);
             if (neighbor && neighbor !== section) {
                 neighbors.get(section)!.add(neighbor);
@@ -53,8 +54,4 @@ export function assignSectionColors(
     }
 
     return Object.fromEntries(sectionIds.map(section => [section, palette[assignments[section]]]));
-}
-
-function toCellKey([x, y]: Coordinate): CellKey {
-    return `${x},${y}`;
 }

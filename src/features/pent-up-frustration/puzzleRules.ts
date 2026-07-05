@@ -1,4 +1,5 @@
 import {PUZZLE_CONSTANTS} from './puzzleDefinition';
+import {coordinatesFor} from './cellCoordinates';
 import type {CellKey} from './types';
 
 export type ScoreClues = Readonly<Partial<Record<CellKey, string>>>;
@@ -48,8 +49,8 @@ export function scoreAfterMove(score: bigint, move: number, fromTower: boolean, 
 }
 
 export function destinationElevation(from: CellKey, to: CellKey, fromIsTower: boolean) {
-    const [fromX, fromY] = coordinates(from);
-    const [toX, toY] = coordinates(to);
+    const [fromX, fromY] = coordinatesFor(from);
+    const [toX, toY] = coordinatesFor(to);
     const xDistance = Math.abs(toX - fromX);
     const yDistance = Math.abs(toY - fromY);
 
@@ -60,8 +61,4 @@ export function destinationElevation(from: CellKey, to: CellKey, fromIsTower: bo
         return !fromIsTower;
     }
     return null;
-}
-
-function coordinates(key: CellKey) {
-    return key.split(',').map(Number) as [number, number];
 }

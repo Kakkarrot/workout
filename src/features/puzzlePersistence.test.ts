@@ -7,13 +7,17 @@ describe('puzzle persistence registry', () => {
         const persistence = puzzlePersistenceFor(PUZZLE_ID);
         expect(persistence).toBeDefined();
         expect(persistence?.normalize({
-            version: 1,
-            movePath: ['0,0', '2,1'],
-            startingCellIsTower: false,
+            version: 3,
+            populatedCells: [
+                {cell: '0,0', move: 0, value: '0', isTower: false},
+                {cell: '2,1', move: 1, value: '1', isTower: false},
+            ],
         })).toEqual({
-            version: 2,
-            moves: ['0,0', '2,1'],
-            startingCellIsTower: false,
+            version: 3,
+            populatedCells: [
+                {cell: '0,0', move: 0, value: '0', isTower: false},
+                {cell: '2,1', move: 1, value: '1', isTower: false},
+            ],
         });
     });
 

@@ -1,8 +1,7 @@
-import {PUZZLE_CELLS, PUZZLE_CONSTANTS} from './puzzleDefinition';
+import {PUZZLE_CONSTANTS} from './puzzleDefinition';
+import {sectionForCell} from './puzzleTopology';
 import {destinationElevation, evaluatePath, scoreAfterMove} from './puzzleRules';
 import type {CellKey} from './types';
-
-const sectionByCell = new Map(PUZZLE_CELLS.map(cell => [cell.key, cell.section]));
 
 export type PuzzleProgress = {
     path: readonly CellKey[];
@@ -131,7 +130,7 @@ export function availableTowersFor(
                 const isTower = heights.get(move) as boolean;
                 if (displayedCells.has(cell) && !isTower) return [];
                 if (isTower) {
-                    const section = sectionFor(cell);
+                    const section = sectionForCell(cell);
                     const existing = available.get(section) ?? towerBySection.get(section);
                     if (existing && existing !== cell) return [];
                     towerBySection.set(section, cell);
@@ -154,7 +153,7 @@ export function availableTowersFor(
         for (const move of segment) {
             if (candidates.length > 0 && candidates.every(candidate => candidate.heights.get(move))) {
                 const cell = moves[move] as CellKey;
-                available.set(sectionFor(cell), cell);
+                available.set(sectionForCell(cell), cell);
             }
         }
     }
@@ -185,7 +184,7 @@ function scoreBeforeMove(score: bigint, move: number, fromTower: boolean, toTowe
 
 function inferTowers(path: readonly CellKey[], startingTower: boolean) {
     const towerBySection = new Map<number, CellKey>();
-    if (startingTower && path[0]) towerBySection.set(sectionFor(path[0]), path[0]);
+    if (startingTower && path[0]) towerBySection.set(sectionForCell(path[0]), path[0]);
 
     for (let move = 1; move < path.length; move += 1) {
         const from = path[move - 1];
@@ -195,7 +194,7 @@ function inferTowers(path: readonly CellKey[], startingTower: boolean) {
         if (toIsTower === null) return {towerBySection, validLength: move};
         if (!toIsTower) continue;
 
-        const section = sectionFor(to);
+        const section = sectionForCell(to);
         if (towerBySection.has(section)) return {towerBySection, validLength: move};
         towerBySection.set(section, to);
     }
@@ -210,8 +209,4 @@ function invalidGeometryMoves(moves: readonly (CellKey | null)[]) {
         if (from && to && destinationElevation(from, to, false) === null) invalidMoves.add(move);
     }
     return invalidMoves;
-}
-
-function sectionFor(key: CellKey) {
-    return sectionByCell.get(key) as number;
 }

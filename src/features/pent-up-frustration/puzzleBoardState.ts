@@ -1,5 +1,5 @@
-import {PUZZLE_CELLS} from './puzzleDefinition';
 import {availableScoresFor, availableTowersFor, evaluateProgress} from './puzzleProgress';
+import {isPuzzleCell, sectionForCell} from './puzzleTopology';
 import type {ScoreSequenceStart} from './scoreSequences';
 import type {CellKey} from './types';
 
@@ -13,8 +13,7 @@ export type PuzzleBoardState = {
     towerBySection: ReadonlyMap<number, CellKey>;
 };
 
-const sectionByCell = new Map(PUZZLE_CELLS.map(cell => [cell.key, cell.section]));
-const startingSection = sectionByCell.get(STARTING_CELL) as number;
+const startingSection = sectionForCell(STARTING_CELL);
 
 export function createPuzzleBoardState(): PuzzleBoardState {
     return {moves: [STARTING_CELL], displayScores: [BigInt(0)], towerBySection: new Map()};
@@ -23,19 +22,28 @@ export function createPuzzleBoardState(): PuzzleBoardState {
 export function hydratePuzzleBoardState(
     moves: readonly (CellKey | null)[],
     startingCellIsTower: boolean,
+    towerCells?: readonly CellKey[],
+    displayScores?: readonly (bigint | undefined)[],
 ) {
     const populated = moves.filter((key): key is CellKey => Boolean(key));
     if (new Set(populated).size !== populated.length) return null;
     const initial = createPuzzleBoardState();
-    const towerBySection = startingCellIsTower
-        ? new Map([[startingSection, STARTING_CELL]])
-        : initial.towerBySection;
-    return rebuildBoard({...initial, towerBySection}, moves);
+    const persistedTowers = towerCells ?? (startingCellIsTower ? [STARTING_CELL] : []);
+    if (persistedTowers.some(key => !populated.includes(key))) return null;
+    const towerBySection = new Map<number, CellKey>();
+    for (const key of persistedTowers) {
+        if (!isPuzzleCell(key)) return null;
+        const section = sectionForCell(key);
+        if (towerBySection.has(section)) return null;
+        towerBySection.set(section, key);
+    }
+    if (towerBySection.has(startingSection) !== startingCellIsTower) return null;
+    return rebuildBoard({...initial, towerBySection, displayScores: displayScores ?? initial.displayScores}, moves);
 }
 
 export function placeFollowingMove(board: PuzzleBoardState, activeMove: number, key: CellKey) {
     const moveToPlace = activeMove + 1;
-    if (!sectionByCell.has(key)
+    if (!isPuzzleCell(key)
         || moveToPlace > MAX_MOVE
         || board.moves[moveToPlace]
         || board.moves.filter(Boolean).length >= MAX_MARKED_SQUARES) return null;

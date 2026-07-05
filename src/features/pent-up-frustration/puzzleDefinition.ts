@@ -1,4 +1,5 @@
 import {assignSectionColors} from './sectionColoring';
+import {cellKey} from './cellCoordinates';
 import type {CellKey, Coordinate, PuzzleCell} from './types';
 
 export const GRID_SIZE = 8;
@@ -52,7 +53,7 @@ export function buildPuzzleCells(
 ) {
     const sectionByCell = new Map<CellKey, number>(
         Object.entries(sectionLayout).flatMap(([section, coordinates]) =>
-            coordinates.map(coordinate => [toCellKey(coordinate), Number(section)]),
+            coordinates.map(coordinate => [cellKey(coordinate), Number(section)]),
         ),
     );
     const sectionColors = assignSectionColors(sectionLayout, sectionPalette);
@@ -60,7 +61,7 @@ export function buildPuzzleCells(
     return Array.from({length: gridSize * gridSize}, (_, index): PuzzleCell => {
         const x = index % gridSize;
         const y = gridSize - 1 - Math.floor(index / gridSize);
-        const key = toCellKey([x, y]);
+        const key = cellKey([x, y]);
         const section = sectionByCell.get(key);
 
         if (!section) throw new Error(`Puzzle cell ${key} does not belong to a section`);
@@ -79,8 +80,4 @@ export function buildPuzzleCells(
 export function formatCoordinate(key: CellKey) {
     const [x, y] = key.split(',');
     return `(${x}, ${y})`;
-}
-
-function toCellKey([x, y]: Coordinate): CellKey {
-    return `${x},${y}`;
 }
