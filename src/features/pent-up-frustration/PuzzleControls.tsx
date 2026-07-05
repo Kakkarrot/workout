@@ -12,10 +12,11 @@ type PuzzleControlsProps = {
     state: PuzzleControlsState;
     onToggleErase: () => void;
     onToggleHighlight: () => void;
+    onCopyLayout: () => Promise<void>;
     onSave: () => Promise<void>;
 };
 
-export function PuzzleControls({state, onToggleErase, onToggleHighlight, onSave}: PuzzleControlsProps) {
+export function PuzzleControls({state, onToggleErase, onToggleHighlight, onCopyLayout, onSave}: PuzzleControlsProps) {
     return (
         <>
             <div className="puzzle-modes">
@@ -43,6 +44,13 @@ export function PuzzleControls({state, onToggleErase, onToggleHighlight, onSave}
                 >
                     <HighlighterIcon/>
                 </ModeButton>
+                <IconButton
+                    label="Copy layout"
+                    disabled={state.disabled}
+                    onClick={() => void onCopyLayout()}
+                >
+                    <CopyIcon/>
+                </IconButton>
             </div>
             <p className="puzzle-help">{helpText[state.mode]}</p>
         </>
@@ -92,6 +100,10 @@ function SaveIcon() {
 
 function HighlighterIcon() {
     return <Icon path="m14.69 2.86 6.45 6.45a1 1 0 0 1 0 1.42l-8.48 8.48-7.87-7.87 8.48-8.48a1 1 0 0 1 1.42 0Zm-.71 2.12-6.36 6.36 5.04 5.04 6.36-6.36-5.04-5.04ZM3.38 12.75l7.87 7.87-.52.52a1 1 0 0 1-.71.3H3.56a1 1 0 0 1-1-1v-6.46a1 1 0 0 1 .29-.71l.53-.52ZM4.56 16v3.44H8l-3.44-3.45ZM2 22h20v2H2v-2Z"/>;
+}
+
+function CopyIcon() {
+    return <Icon path="M8 2h11a3 3 0 0 1 3 3v11h-2V5a1 1 0 0 0-1-1H8V2ZM5 6h11a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3Zm0 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H5Z"/>;
 }
 
 function Icon({path}: {path: string}) {

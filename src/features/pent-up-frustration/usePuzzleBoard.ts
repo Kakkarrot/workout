@@ -3,6 +3,7 @@
 import {useEffect, useReducer, useState} from 'react';
 import {createPuzzleState, puzzleReducer} from './puzzleState';
 import {loadPuzzleState, savePuzzleState} from './puzzleStateApi';
+import {storePuzzleState} from './puzzleStorage';
 import type {CellKey} from './types';
 
 export function usePuzzleBoard(puzzleId: string) {
@@ -44,6 +45,16 @@ export function usePuzzleBoard(puzzleId: string) {
         }
     }
 
+    async function copyLayout() {
+        try {
+            const layout = JSON.stringify(storePuzzleState(state), null, 2);
+            await navigator.clipboard.writeText(layout);
+            setStatus('Layout copied.');
+        } catch (error) {
+            setStatus(errorMessage(error, 'Could not copy the layout'));
+        }
+    }
+
     return {
         state,
         isLoading,
@@ -52,6 +63,7 @@ export function usePuzzleBoard(puzzleId: string) {
         selectCell: (key: CellKey) => dispatch({type: 'selectCell', key}),
         toggleErase: () => dispatch({type: 'toggleErase'}),
         toggleHighlight: () => dispatch({type: 'toggleHighlight'}),
+        copyLayout,
         save,
     };
 }

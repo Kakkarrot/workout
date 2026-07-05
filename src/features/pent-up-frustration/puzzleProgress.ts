@@ -10,18 +10,43 @@ export type PuzzleProgress = {
     invalidMoves: ReadonlySet<number>;
 };
 
-export function evaluateProgress(
-    moves: readonly (CellKey | null)[],
-    startingTower: boolean,
-): PuzzleProgress {
+export type PuzzleProgressInput = {
+    moves: readonly (CellKey | null)[];
+    towerBySection: ReadonlyMap<number, CellKey>;
+};
+
+export function evaluateProgress({moves, towerBySection}: PuzzleProgressInput): PuzzleProgress {
     const path = connectedPath(moves);
+    const startingCell = path[0];
+    const startingTower = startingCell !== undefined
+        && towerBySection.get(sectionForCell(startingCell)) === startingCell;
     const towers = inferTowers(path, startingTower);
     const verifiedPath = path.slice(0, towers.validLength);
     const evaluation = evaluatePath(verifiedPath, new Set(towers.towerBySection.values()));
     const invalidMoves = invalidGeometryMoves(moves);
+    invalidTowerSectionMoves(moves, towerBySection).forEach(move => invalidMoves.add(move));
     if (towers.validLength < path.length) invalidMoves.add(towers.validLength);
     else if (evaluation.validLength < path.length) invalidMoves.add(evaluation.validLength);
     return {path, scores: evaluation.scores, towerBySection: towers.towerBySection, invalidMoves};
+}
+
+function invalidTowerSectionMoves(
+    moves: readonly (CellKey | null)[],
+    towerBySection: ReadonlyMap<number, CellKey>,
+) {
+    const invalidMoves = new Set<number>();
+    const towerCells = new Set(towerBySection.values());
+
+    for (let move = 1; move < moves.length; move += 1) {
+        const from = moves[move - 1];
+        const to = moves[move];
+        if (!from || !to || !towerCells.has(from)) continue;
+        if (destinationElevation(from, to, true) !== true) continue;
+
+        const existingTower = towerBySection.get(sectionForCell(to));
+        if (existingTower && existingTower !== to) invalidMoves.add(move);
+    }
+    return invalidMoves;
 }
 
 export function connectedPath(moves: readonly (CellKey | null)[]) {

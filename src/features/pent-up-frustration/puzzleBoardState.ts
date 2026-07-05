@@ -93,8 +93,7 @@ export function scoreSequenceStartFor(board: PuzzleBoardState, activeMove: numbe
 }
 
 function rebuildBoard(board: PuzzleBoardState, moves: readonly (CellKey | null)[]): PuzzleBoardState {
-    const startingTower = board.towerBySection.get(startingSection) === STARTING_CELL;
-    const progress = evaluateProgress(moves, startingTower);
+    const progress = evaluateProgress({...board, moves});
     const displayScores = [...board.displayScores];
     progress.scores.forEach((score, move) => { displayScores[move] = score; });
     const availableScores = availableScoresFor(moves, displayScores);

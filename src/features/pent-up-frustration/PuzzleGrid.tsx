@@ -7,13 +7,13 @@ import {PuzzleInstructions} from './PuzzleInstructions';
 import {PUZZLE_ID} from './puzzleDefinition';
 import {evaluateProgress} from './puzzleProgress';
 import {ScoreSequenceGenerator} from './ScoreSequenceGenerator';
-import {STARTING_CELL, scoreSequenceStartFor, towerCellsFor} from './puzzleState';
+import {scoreSequenceStartFor, towerCellsFor} from './puzzleState';
 import {usePuzzleBoard} from './usePuzzleBoard';
 
 export function PuzzleGrid() {
-    const {state, isLoading, isSaving, status, selectCell, toggleErase, toggleHighlight, save} = usePuzzleBoard(PUZZLE_ID);
+    const {state, isLoading, isSaving, status, selectCell, toggleErase, toggleHighlight, copyLayout, save} = usePuzzleBoard(PUZZLE_ID);
     const towerCells = useMemo(() => towerCellsFor(state), [state]);
-    const progress = evaluateProgress(state.moves, towerCells.has(STARTING_CELL));
+    const progress = evaluateProgress(state);
     const scoreSequenceStart = scoreSequenceStartFor(state);
     const board = {
         moves: state.moves,
@@ -43,6 +43,7 @@ export function PuzzleGrid() {
                     }}
                     onToggleErase={toggleErase}
                     onToggleHighlight={toggleHighlight}
+                    onCopyLayout={copyLayout}
                     onSave={save}
                 />
                 <p className="puzzle-status" aria-live="polite">{status}</p>

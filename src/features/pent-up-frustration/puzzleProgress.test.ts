@@ -65,8 +65,28 @@ describe('puzzle progress', () => {
     it('rejects a connected path that requires two towers in one section', () => {
         const path = pathWithRepeatedTowerSection();
         expect(path).not.toBeNull();
-        expect(evaluateProgress(path as CellKey[], false).invalidMoves).toContain(path!.length - 1);
+        expect(evaluateProgress({
+            moves: path as CellKey[],
+            towerBySection: new Map(),
+        }).invalidMoves).toContain(path!.length - 1);
     });
+
+    it('rejects a detached move that continues a tower into an occupied section', () => {
+        const moves = Array<CellKey | null>(24).fill(null);
+        moves[0] = '0,0';
+        moves[7] = '4,5';
+        moves[21] = '5,0';
+        moves[22] = '7,1';
+        moves[23] = '6,3';
+        const displayedTowers = new Map<number, CellKey>([
+            [8, '4,5'],
+            [7, '5,0'],
+            [6, '7,1'],
+        ]);
+
+        expect(evaluateProgress({moves, towerBySection: displayedTowers}).invalidMoves).toContain(23);
+    });
+
 });
 
 function pathWithRepeatedTowerSection() {
