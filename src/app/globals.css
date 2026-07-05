@@ -1,11 +1,22 @@
+:root {
+    color-scheme: dark;
+    --app-background: #000;
+    --app-foreground: #fff;
+    --app-muted-foreground: #aeb6c2;
+}
+
+html,
+body {
+    background: var(--app-background);
+    color: var(--app-foreground);
+}
+
 body {
     margin: 0;
-    background: black;
-    color: white;
     font-family: Arial, Helvetica, sans-serif;
 }
 
-a { color: white; }
+a { color: var(--app-foreground); }
 
 .page {
     box-sizing: border-box;
@@ -15,11 +26,6 @@ a { color: white; }
 
 .page h1 { margin: 2rem 0; }
 .back-link { text-decoration: none; }
-.puzzle-page {
-    background: #f4f5f7;
-    color: #171717;
-}
-.puzzle-page .back-link { color: #3d4652; }
 .puzzle-page h1 {
     max-width: 40rem;
     margin-right: auto;
@@ -30,12 +36,15 @@ a { color: white; }
 .puzzle-list a {
     display: block;
     padding: 1.25rem;
-    border: 0.15rem solid white;
+    border: 0.15rem solid var(--app-foreground);
     border-radius: 0.5rem;
     font-weight: bold;
     text-decoration: none;
 }
-.puzzle-list a:hover, .puzzle-list a:focus-visible { background: white; color: black; }
+.puzzle-list a:hover, .puzzle-list a:focus-visible {
+    background: var(--app-foreground);
+    color: var(--app-background);
+}
 
 .workout-page { min-height: 100vh; text-align: center; }
 .workout-controls {
@@ -44,14 +53,18 @@ a { color: white; }
     box-sizing: border-box;
     width: 90vw;
     padding: 2rem 0 0.5rem;
-    background: black;
+    background: var(--app-background);
 }
 .puzzles-link { align-self: flex-start; font-weight: bold; }
 .generate-button { width: 100%; }
 .workout-select { width: 40vw; }
-.workout-select .MuiInputLabel-root, .workout-select .MuiSelect-select, .workout-select .MuiSvgIcon-root { color: white; }
-.workout-select .MuiOutlinedInput-notchedOutline { border-color: white !important; }
-.workout-menu .MuiPaper-root { border: 0.1rem solid white; background: black; color: white; }
+.workout-select .MuiInputLabel-root, .workout-select .MuiSelect-select, .workout-select .MuiSvgIcon-root { color: var(--app-foreground); }
+.workout-select .MuiOutlinedInput-notchedOutline { border-color: var(--app-foreground) !important; }
+.workout-menu .MuiPaper-root {
+    border: 0.1rem solid var(--app-foreground);
+    background: var(--app-background);
+    color: var(--app-foreground);
+}
 .exercise {
     box-sizing: border-box;
     display: flex;
@@ -59,11 +72,15 @@ a { color: white; }
     justify-content: center;
     width: 95%;
     min-height: 2.3rem;
-    border: 0.15rem solid white;
+    border: 0.15rem solid var(--app-foreground);
     border-radius: 0.5rem;
 }
 
 .puzzle-workspace {
+    --puzzle-surface: #fff;
+    --puzzle-surface-foreground: #171717;
+    --puzzle-muted-foreground: #59616c;
+
     width: min(100%, 35rem);
     margin: 0 auto;
 }
@@ -78,7 +95,7 @@ a { color: white; }
 .y-coordinates,
 .x-coordinates {
     display: grid;
-    color: #59616c;
+    color: var(--app-muted-foreground);
     font: 600 0.8rem system-ui, sans-serif;
 }
 
@@ -112,8 +129,8 @@ a { color: white; }
     min-width: 0;
     padding: 0;
     border: 1px solid #d5d8dc;
-    background: white;
-    color: #171717;
+    background: var(--puzzle-surface);
+    color: var(--puzzle-surface-foreground);
     font: 500 clamp(0.7rem, 3vw, 1.1rem) system-ui, sans-serif;
     cursor: pointer;
     appearance: none;
@@ -121,7 +138,6 @@ a { color: white; }
 }
 
 .puzzle-cell--prefilled {
-    color: #171717;
     font-weight: 900;
 }
 
@@ -131,7 +147,7 @@ a { color: white; }
 .puzzle-cell:disabled:hover { filter: none; }
 .puzzle-cell:disabled:active { transform: none; }
 .puzzle-cell--selected { z-index: 1; outline: 3px solid #1558b0; outline-offset: -3px; }
-.puzzle-cell--tower { box-shadow: inset 0 0 0 4px white; }
+.puzzle-cell--tower { box-shadow: inset 0 0 0 4px var(--puzzle-surface); }
 
 .puzzle-cell__move {
     position: absolute;
@@ -150,7 +166,7 @@ a { color: white; }
 
 .puzzle-help {
     margin: 1rem 0 0;
-    color: #59616c;
+    color: var(--app-muted-foreground);
     font-size: 0.95rem;
     line-height: 1.5;
     text-align: center;
@@ -166,9 +182,9 @@ a { color: white; }
 .puzzle-mode {
     min-height: 2.75rem;
     padding: 0 1rem;
-    border: 2px solid #59616c;
+    border: 2px solid var(--puzzle-muted-foreground);
     border-radius: 0.6rem;
-    background: white;
+    background: var(--puzzle-surface);
     color: #303741;
     font: 700 0.95rem system-ui, sans-serif;
     cursor: pointer;
@@ -177,7 +193,7 @@ a { color: white; }
 .puzzle-mode--active {
     border-color: #1558b0;
     background: #1558b0;
-    color: white;
+    color: var(--app-foreground);
 }
 
 .puzzle-mode:disabled {
@@ -188,7 +204,7 @@ a { color: white; }
 .puzzle-status {
     min-height: 1.5rem;
     margin: 0.5rem 0 0;
-    color: #59616c;
+    color: var(--app-muted-foreground);
     text-align: center;
 }
 

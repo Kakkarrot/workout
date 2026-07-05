@@ -1,0 +1,38 @@
+import styles from './PuzzleInstructions.module.css';
+
+export function PuzzleInstructions() {
+    return (
+        <section className={styles.instructions} aria-labelledby="puzzle-instructions-title">
+            <h2 id="puzzle-instructions-title">How to play</h2>
+            <p>
+                Reconstruct the knight’s path from the bottom-left square. The 13 colored regions each
+                contain exactly one tower, and the path must visit every tower without landing on any
+                square twice. Printed numbers are fixed score clues that your path must match.
+            </p>
+            <ul>
+                <li>
+                    A tower is one cube high. On the board, a normal knight move <strong>(1 across, 2 up)</strong>{' '}
+                    stays at the same height. A move <strong>2 squares straight</strong> must go between a tower
+                    and a non-tower square.
+                </li>
+                <li>
+                    On move <strong>N</strong>: add N when staying at the same height, multiply by N when moving
+                    up, or divide by N when moving down. Division must produce a whole number.
+                </li>
+                <li>
+                    Select each destination in order. The board infers tower locations and rejects moves
+                    that break a movement, tower, score, or printed-clue rule.
+                </li>
+            </ul>
+            <p>
+                To finish, fill in the missing path scores. For every unvisited square, add the scores in
+                its orthogonally adjacent visited squares; the puzzle answer is the sum of those results.
+            </p>
+            <p className={styles.controls}>
+                Before moving, select the starting square to toggle a tower there. Select the latest move
+                to undo it, or use <strong>Multi reset</strong> and select an earlier move to erase it and
+                everything after it.
+            </p>
+        </section>
+    );
+}
