@@ -1,0 +1,235 @@
+body {
+    margin: 0;
+    background: black;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+a { color: white; }
+
+.page {
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding: 3rem max(1.5rem, calc((100vw - 48rem) / 2));
+}
+
+.page h1 { margin: 2rem 0; }
+.back-link { text-decoration: none; }
+.puzzle-page {
+    background: #f4f5f7;
+    color: #171717;
+}
+.puzzle-page .back-link { color: #3d4652; }
+.puzzle-page h1 {
+    max-width: 40rem;
+    margin-right: auto;
+    margin-left: auto;
+    text-align: center;
+}
+.puzzle-list { padding: 0; list-style: none; }
+.puzzle-list a {
+    display: block;
+    padding: 1.25rem;
+    border: 0.15rem solid white;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    text-decoration: none;
+}
+.puzzle-list a:hover, .puzzle-list a:focus-visible { background: white; color: black; }
+
+.workout-page { min-height: 100vh; text-align: center; }
+.workout-controls {
+    position: sticky;
+    top: 0;
+    box-sizing: border-box;
+    width: 90vw;
+    padding: 2rem 0 0.5rem;
+    background: black;
+}
+.puzzles-link { align-self: flex-start; font-weight: bold; }
+.generate-button { width: 100%; }
+.workout-select { width: 40vw; }
+.workout-select .MuiInputLabel-root, .workout-select .MuiSelect-select, .workout-select .MuiSvgIcon-root { color: white; }
+.workout-select .MuiOutlinedInput-notchedOutline { border-color: white !important; }
+.workout-menu .MuiPaper-root { border: 0.1rem solid white; background: black; color: white; }
+.exercise {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 95%;
+    min-height: 2.3rem;
+    border: 0.15rem solid white;
+    border-radius: 0.5rem;
+}
+
+.puzzle-workspace {
+    width: min(100%, 35rem);
+    margin: 0 auto;
+}
+
+.coordinate-grid {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) 1.5rem;
+    gap: 0.35rem;
+}
+
+.y-coordinates,
+.x-coordinates {
+    display: grid;
+    color: #59616c;
+    font: 600 0.8rem system-ui, sans-serif;
+}
+
+.y-coordinates { grid-template-rows: repeat(8, 1fr); }
+.x-coordinates { grid-template-columns: repeat(8, 1fr); }
+
+.y-coordinates span,
+.x-coordinates span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.coordinate-corner { grid-column: 1; grid-row: 2; }
+
+.puzzle-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    padding: 3px;
+    border-radius: 0.35rem;
+    background: #32353a;
+    box-shadow: 0 0.75rem 2rem rgb(17 24 39 / 14%);
+}
+
+.puzzle-cell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    min-width: 0;
+    padding: 0;
+    border: 1px solid #d5d8dc;
+    background: white;
+    color: #171717;
+    font: 500 clamp(0.7rem, 3vw, 1.1rem) system-ui, sans-serif;
+    cursor: pointer;
+    appearance: none;
+    transition: filter 100ms ease, transform 100ms ease;
+}
+
+.puzzle-cell--prefilled {
+    box-shadow: inset 0 0 0 2px rgb(0 0 0 / 22%);
+    color: #171717;
+    font-weight: 900;
+    cursor: default;
+    opacity: 1;
+}
+
+.puzzle-cell:not(:disabled):hover { filter: brightness(0.95); }
+.puzzle-cell:not(:disabled):active { transform: scale(0.94); }
+.puzzle-cell--selected { z-index: 1; outline: 3px solid #1558b0; outline-offset: -3px; }
+.puzzle-cell--note { align-items: start; justify-items: end; padding: 0.25rem; font-size: clamp(0.55rem, 2.3vw, 0.78rem); font-weight: 500; }
+
+.cell-number--wrapped {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.05;
+}
+
+.puzzle-help {
+    margin: 1rem 0 0;
+    color: #59616c;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.cell-editor {
+    position: sticky;
+    bottom: 0.75rem;
+    z-index: 10;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 1rem;
+    background: rgb(255 255 255 / 96%);
+    box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 20%);
+    backdrop-filter: blur(12px);
+}
+
+.cell-editor__header,
+.number-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.cell-editor__header { justify-content: space-between; margin-bottom: 0.75rem; }
+
+.editor-done {
+    border: 0;
+    background: transparent;
+    color: #1558b0;
+    font: 700 1rem system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.entry-kind {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0.2rem;
+    border-radius: 0.65rem;
+    background: #e7e9ed;
+    margin-bottom: 0.75rem;
+}
+
+.entry-kind__button {
+    min-height: 2.5rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: #4b5563;
+    font: 700 0.95rem system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.entry-kind__button--selected { background: white; color: #171717; box-shadow: 0 1px 4px rgb(0 0 0 / 15%); }
+
+.number-entry input {
+    min-width: 0;
+    width: 100%;
+    height: 3rem;
+    box-sizing: border-box;
+    padding: 0 0.85rem;
+    border: 2px solid #9ca3af;
+    border-radius: 0.6rem;
+    background: white;
+    color: #171717;
+    font: 700 1.1rem system-ui, sans-serif;
+}
+
+.number-entry input:focus { border-color: #1558b0; outline: 2px solid rgb(21 88 176 / 20%); }
+
+.editor-clear {
+    min-height: 3rem;
+    padding: 0 1rem;
+    border: 1px solid #c6cad0;
+    border-radius: 0.6rem;
+    background: white;
+    color: #9b2424;
+    font: 700 0.95rem system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.editor-clear:disabled { color: #9ca3af; cursor: default; }
+
+@media (max-width: 36rem) {
+    .puzzle-page { padding: 1.25rem 0.75rem 2rem; }
+    .puzzle-page h1 { margin: 1.5rem 0; font-size: 1.5rem; }
+    .puzzle-workspace:has(.cell-editor) { padding-bottom: 0.25rem; }
+    .cell-editor { bottom: 0.35rem; margin-right: -0.25rem; margin-left: -0.25rem; padding: 0.85rem; }
+}

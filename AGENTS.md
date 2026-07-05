@@ -1,0 +1,29 @@
+# Repository Guidelines
+
+Small full-stack Next.js and TypeScript app using the App Router and Material UI.
+
+## Commands
+
+- `npm run dev` — run the development server
+- `npm run build` — create a production build
+- `npm run typecheck` — check TypeScript
+
+## Structure
+
+- `src/app/` — routes and global styles
+- `src/features/` — feature-owned models, state, and UI
+- `src/components/` — shared UI
+- `src/lib/` — server-only integrations
+
+## Conventions
+
+- Keep changes simple and consistent with the existing TypeScript code.
+- Keep immutable puzzle definitions separate from interactive state.
+- Keep database credentials and access in server-only modules.
+- The puzzle state is intentionally shared by every visitor; there is no authentication.
+- Do not commit generated files or IDE-specific configuration.
+
+## Roadmap
+
+- Replace the temporary MongoDB API with Firestore.
+- Add focused tests for coordinate mapping, section coloring, and grid editing.
