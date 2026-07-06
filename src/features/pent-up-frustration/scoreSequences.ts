@@ -1,5 +1,5 @@
 export type ScoreSequence = readonly bigint[];
-export const MAX_SCORE_STEPS = 10;
+export const MAX_SCORE_STEPS = 64;
 export type ScoreSequenceStart = Readonly<{
     score: bigint;
     move: number;
@@ -11,6 +11,7 @@ export function generateScoresForward(
     currentMove: number,
     currentHeight: 0 | 1,
     steps: number,
+    requiredScores: readonly (bigint | undefined)[] = [],
 ): ScoreSequence[] {
     if (!Number.isInteger(steps) || steps < 0 || steps > MAX_SCORE_STEPS) {
         throw new RangeError(`Steps must be a non-negative integer no greater than ${MAX_SCORE_STEPS}`);
@@ -25,14 +26,20 @@ export function generateScoresForward(
         }
 
         const n = BigInt(move);
-        recurse(score + n, move + 1, height, remaining - 1, [...scores, score + n]);
+        continueWith(score + n, height);
 
         if (height === 0) {
-            recurse(score * n, move + 1, 1, remaining - 1, [...scores, score * n]);
+            continueWith(score * n, 1);
         }
 
         if (height === 1 && score % n === BigInt(0)) {
-            recurse(score / n, move + 1, 0, remaining - 1, [...scores, score / n]);
+            continueWith(score / n, 0);
+        }
+
+        function continueWith(nextScore: bigint, nextHeight: number) {
+            const requiredScore = requiredScores[move];
+            if (requiredScore !== undefined && nextScore !== requiredScore) return;
+            recurse(nextScore, move + 1, nextHeight, remaining - 1, [...scores, nextScore]);
         }
     }
 

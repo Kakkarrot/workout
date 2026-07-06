@@ -5,6 +5,7 @@ import {PuzzleBoard} from './PuzzleBoard';
 import {PuzzleControls} from './PuzzleControls';
 import {PuzzleInstructions} from './PuzzleInstructions';
 import {PUZZLE_ID} from './puzzleDefinition';
+import {calculatePuzzleAnswer} from './puzzleAnswer';
 import {evaluateProgress} from './puzzleProgress';
 import {ScoreSequenceGenerator} from './ScoreSequenceGenerator';
 import {scoreSequenceStartFor, towerCellsFor} from './puzzleState';
@@ -53,9 +54,13 @@ export function PuzzleGrid() {
             {!isLoading && (
                 <ScoreSequenceGenerator
                     start={scoreSequenceStart}
+                    requiredScores={state.displayScores}
+                    onCalculateAnswer={() => calculatePuzzleAnswer(state.moves, state.displayScores)}
                     onAnalyzeSequence={pathAnalysis.analyze}
                     onAddPaths={pathAnalysis.add}
                     storedPathCount={pathAnalysis.storedPathCount}
+                    simulation={pathAnalysis.simulation}
+                    onAnalyzeSimulation={pathAnalysis.summarizeSimulation}
                 />
             )}
             <PuzzleInstructions/>

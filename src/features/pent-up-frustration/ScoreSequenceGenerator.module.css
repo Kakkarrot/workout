@@ -12,6 +12,8 @@
 .startingValues { color: var(--app-muted-foreground); }
 .form { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 .generateButton { padding: 0.6rem 0.9rem; font: inherit; cursor: pointer; }
+.calculateButton { padding: 0.6rem 0.9rem; font: inherit; cursor: pointer; }
+.answer { font-size: 1.1rem; font-weight: 600; }
 .results { margin-top: 1rem; }
 .results p { margin-bottom: 0.5rem; }
 .results ol { max-height: 20rem; margin: 0; padding-left: 2rem; overflow: auto; }
@@ -21,3 +23,10 @@
 .addButton:disabled { cursor: default; }
 .analysis { display: block; color: var(--app-muted-foreground); font-size: 0.9rem; }
 .storedCount { color: var(--app-muted-foreground); font-size: 0.9rem; }
+.simulationCount { font-weight: 600; }
+.analyzeSimulationButton { padding: 0.4rem 0.65rem; cursor: pointer; }
+.simulationSummary p { margin: 0.5rem 0; }
+.simulation summary { cursor: pointer; }
+.simulatedPaths { max-height: 24rem; margin-top: 0.5rem; overflow: auto; }
+.simulatedPaths li { margin-bottom: 0.75rem; }
+.simulatedPaths span { display: block; }

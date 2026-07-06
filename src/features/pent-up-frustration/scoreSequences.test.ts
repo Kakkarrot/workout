@@ -31,9 +31,18 @@ describe('generateScoresForward', () => {
         ]);
     });
 
+    it('keeps only sequences that match known scores at their move numbers', () => {
+        const requiredScores = Array<bigint | undefined>(5);
+        requiredScores[4] = BigInt(10);
+
+        expect(generateScoresForward(BigInt(3), 3, 0, 2, requiredScores)).toEqual([
+            [BigInt(6), BigInt(10)],
+        ]);
+    });
+
     it('rejects invalid step counts', () => {
         expect(() => generateScoresForward(BigInt(0), 1, 0, -1)).toThrow(RangeError);
         expect(() => generateScoresForward(BigInt(0), 1, 0, 1.5)).toThrow(RangeError);
-        expect(() => generateScoresForward(BigInt(0), 1, 0, 11)).toThrow(RangeError);
+        expect(() => generateScoresForward(BigInt(0), 1, 0, 65)).toThrow(RangeError);
     });
 });
