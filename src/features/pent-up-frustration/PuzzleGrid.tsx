@@ -8,10 +8,12 @@ import {PUZZLE_ID} from './puzzleDefinition';
 import {evaluateProgress} from './puzzleProgress';
 import {ScoreSequenceGenerator} from './ScoreSequenceGenerator';
 import {scoreSequenceStartFor, towerCellsFor} from './puzzleState';
+import {usePathAnalysis} from './usePathAnalysis';
 import {usePuzzleBoard} from './usePuzzleBoard';
 
 export function PuzzleGrid() {
     const {state, isLoading, isSaving, status, selectCell, toggleErase, toggleHighlight, copyLayout, save} = usePuzzleBoard(PUZZLE_ID);
+    const pathAnalysis = usePathAnalysis(state);
     const towerCells = useMemo(() => towerCellsFor(state), [state]);
     const progress = evaluateProgress(state);
     const scoreSequenceStart = scoreSequenceStartFor(state);
@@ -21,7 +23,7 @@ export function PuzzleGrid() {
         scores: state.displayScores.map(score => score?.toString()),
         towerCells,
         invalidMoves: progress.invalidMoves,
-        highlightedCells: state.highlightedCells,
+        highlightedCells: new Set([...state.highlightedCells, ...pathAnalysis.highlightedCells]),
     };
 
     return (
@@ -49,7 +51,12 @@ export function PuzzleGrid() {
                 <p className="puzzle-status" aria-live="polite">{status}</p>
             </section>
             {!isLoading && (
-                <ScoreSequenceGenerator start={scoreSequenceStart}/>
+                <ScoreSequenceGenerator
+                    start={scoreSequenceStart}
+                    onAnalyzeSequence={pathAnalysis.analyze}
+                    onAddPaths={pathAnalysis.add}
+                    storedPathCount={pathAnalysis.storedPathCount}
+                />
             )}
             <PuzzleInstructions/>
         </>

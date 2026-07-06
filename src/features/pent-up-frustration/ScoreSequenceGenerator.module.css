@@ -15,4 +15,9 @@
 .results { margin-top: 1rem; }
 .results p { margin-bottom: 0.5rem; }
 .results ol { max-height: 20rem; margin: 0; padding-left: 2rem; overflow: auto; }
-.results li { padding: 0.2rem 0; font-variant-numeric: tabular-nums; }
+.results li { padding: 0.3rem 0; font-variant-numeric: tabular-nums; }
+.analyzeButton { margin-left: 0.75rem; padding: 0.25rem 0.5rem; cursor: pointer; }
+.addButton { margin-left: 0.4rem; padding: 0.25rem 0.5rem; cursor: pointer; }
+.addButton:disabled { cursor: default; }
+.analysis { display: block; color: var(--app-muted-foreground); font-size: 0.9rem; }
+.storedCount { color: var(--app-muted-foreground); font-size: 0.9rem; }
