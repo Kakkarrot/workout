@@ -4,11 +4,10 @@ import {useEffect, useMemo, useState} from 'react';
 import {analyzeSequencePaths, type AnalyzedPath} from './pathAnalysis';
 import {
     addPathSegment,
-    simulatePathSegments,
     storedPathCount,
-    summarizeSimulatedPaths,
     type StoredPathSegment,
 } from './pathMemory';
+import {simulatePathSegments, summarizeSimulatedPaths} from './pathSimulation';
 import type {PuzzleState} from './puzzleState';
 import type {ScoreSequence} from './scoreSequences';
 import type {CellKey} from './types';

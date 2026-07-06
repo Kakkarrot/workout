@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {addPathSegment, simulatePathSegments, storedPathCount, summarizeSimulatedPaths} from './pathMemory';
+import {addPathSegment, storedPathCount} from './pathMemory';
+import {simulatePathSegments, summarizeSimulatedPaths} from './pathSimulation';
 import type {AnalyzedPath} from './pathAnalysis';
 
 describe('path memory', () => {

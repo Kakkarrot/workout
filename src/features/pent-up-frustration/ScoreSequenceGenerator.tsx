@@ -9,7 +9,8 @@ import {
     type ScoreSequenceStart,
 } from './scoreSequences';
 import type {PathAnalysis} from './pathAnalysis';
-import type {PathSimulation, PathSimulationSummary} from './pathMemory';
+import {PathSimulationPanel} from './PathSimulationPanel';
+import type {PathSimulation, PathSimulationSummary} from './pathSimulation';
 import styles from './ScoreSequenceGenerator.module.css';
 
 type ScoreSequenceGeneratorProps = {
@@ -40,7 +41,6 @@ export function ScoreSequenceGenerator({
     const [results, setResults] = useState<ScoreSequence[] | null>(null);
     const [analysis, setAnalysis] = useState<{key: string; result: PathAnalysis} | null>(null);
     const [addedKeys, setAddedKeys] = useState<ReadonlySet<string>>(new Set());
-    const [simulationSummary, setSimulationSummary] = useState<PathSimulationSummary | null>(null);
     const [answer, setAnswer] = useState<bigint | null | undefined>(undefined);
 
     useEffect(() => {
@@ -61,7 +61,6 @@ export function ScoreSequenceGenerator({
     function addPaths(key: string, result: PathAnalysis) {
         onAddPaths(result.paths);
         setAddedKeys(current => new Set(current).add(key));
-        setSimulationSummary(null);
     }
 
     return (
@@ -133,62 +132,10 @@ export function ScoreSequenceGenerator({
                     </ol>
                     <p className={styles.storedCount}>{storedPathCount} stored paths in memory</p>
                     {simulation && (
-                        <div className={styles.simulation}>
-                            <p className={styles.simulationCount}>
-                                {simulation.validPathCount.toString()} valid paths from move{' '}
-                                {simulation.startMove} to {simulation.endMove}
-                            </p>
-                            <button
-                                className={styles.analyzeSimulationButton}
-                                type="button"
-                                onClick={() => setSimulationSummary(onAnalyzeSimulation())}
-                            >
-                                Analyze common squares
-                            </button>
-                            {simulationSummary && (
-                                <div className={styles.simulationSummary} aria-live="polite">
-                                    <p>
-                                        Always towers:{' '}
-                                        {formatCells(simulationSummary.alwaysTowerCells)}
-                                    </p>
-                                    <p>
-                                        Always the same number:{' '}
-                                        {formatFixedValues(simulationSummary.fixedValuesByCell)}
-                                    </p>
-                                </div>
-                            )}
-                            {simulation.paths.length > 0 && (
-                                <details>
-                                    <summary>Show path contents</summary>
-                                    <ol className={styles.simulatedPaths}>
-                                        {simulation.paths.map((path, pathIndex) => (
-                                            <li key={pathIndex}>
-                                                {path.map(pathMove => (
-                                                    <span key={pathMove.move}>
-                                                        <strong>{pathMove.move}</strong>: {pathMove.cell}
-                                                        {' = '}{pathMove.value}
-                                                        {pathMove.isTower ? ' (tower)' : ''}
-                                                    </span>
-                                                ))}
-                                            </li>
-                                        ))}
-                                    </ol>
-                                </details>
-                            )}
-                        </div>
+                        <PathSimulationPanel simulation={simulation} onAnalyze={onAnalyzeSimulation}/>
                     )}
                 </div>
             )}
         </section>
     );
-}
-
-function formatCells(cells: ReadonlySet<string>) {
-    return cells.size > 0 ? [...cells].join(', ') : 'none';
-}
-
-function formatFixedValues(values: ReadonlyMap<string, string>) {
-    return values.size > 0
-        ? [...values].map(([cell, value]) => `${cell} = ${value}`).join(', ')
-        : 'none';
 }
